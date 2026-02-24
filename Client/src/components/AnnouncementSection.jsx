@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../utils/realtime";
+import { getCachedData, setCachedData } from "../utils/apiCache";
+
+const ANNOUNCEMENTS_CACHE_KEY = "announcements_list";
+const ANNOUNCEMENTS_CACHE_TTL_MS = 90 * 1000;
 
 export default function AnnouncementSection() {
   const sectionRef = useRef(null);
@@ -14,14 +18,26 @@ export default function AnnouncementSection() {
   );
   const [page, setPage] = useState(1);
 
-  const loadAnnouncements = async () => {
+  const loadAnnouncements = async (forceRefresh = false) => {
+    if (!forceRefresh) {
+      const cachedAnnouncements = getCachedData(
+        ANNOUNCEMENTS_CACHE_KEY,
+        ANNOUNCEMENTS_CACHE_TTL_MS
+      );
+      if (Array.isArray(cachedAnnouncements)) {
+        setAnnouncements(cachedAnnouncements);
+        return;
+      }
+    }
     setLoading(true);
     setError("");
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/announcements`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to load announcements");
-      setAnnouncements(Array.isArray(data) ? data : []);
+      const nextAnnouncements = Array.isArray(data) ? data : [];
+      setAnnouncements(nextAnnouncements);
+      setCachedData(ANNOUNCEMENTS_CACHE_KEY, nextAnnouncements);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -50,7 +66,7 @@ export default function AnnouncementSection() {
   // Realtime refresh
   useEffect(() => {
     const socket = getSocket();
-    const handler = () => loadAnnouncements();
+    const handler = () => loadAnnouncements(true);
     socket.on("announcements:update", handler);
     return () => {
       socket.off("announcements:update", handler);
@@ -103,7 +119,7 @@ export default function AnnouncementSection() {
       className="bg-[#fff6e5] relative w-full py-10 reveal overflow-hidden"
     >
       {/* ===== HEADING ===== */}
-      <div className="max-w-8xl px-6 mb-12 ">
+      <div className="max-w-7xl mx-auto px-6 mb-12">
         <h2 className="text-4xl md:text-5xl font-serif text-[#7a1f1f] tracking-tight">
           Latest <span className="italic text-yellow-600">Announcements</span>
         </h2>

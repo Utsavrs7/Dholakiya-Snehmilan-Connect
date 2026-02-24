@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCoverflow, Navigation, Pagination } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react"; // Icons
+import { getCachedData, setCachedData } from "../utils/apiCache";
 
 import "swiper/css";
 import "swiper/css/effect-coverflow";
@@ -15,6 +16,8 @@ const fallbackImages = [
   { imageUrl: "/Background Images/bg3.jfif" },
   { imageUrl: "/Background Images/bg2.jpg" },
 ];
+const HERO_CACHE_KEY = "hero_slides";
+const HERO_CACHE_TTL_MS = 2 * 60 * 1000;
 
 export default function HeroSlider() {
   const [slides, setSlides] = useState([]);
@@ -23,7 +26,14 @@ export default function HeroSlider() {
 
   // Fetch Logic
   useEffect(() => {
-    const loadSlides = async () => {
+    const loadSlides = async (forceRefresh = false) => {
+      if (!forceRefresh) {
+        const cachedSlides = getCachedData(HERO_CACHE_KEY, HERO_CACHE_TTL_MS);
+        if (Array.isArray(cachedSlides) && cachedSlides.length > 0) {
+          setSlides(cachedSlides);
+          return;
+        }
+      }
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/hero`);
         const data = await res.json();
@@ -36,6 +46,7 @@ export default function HeroSlider() {
               : s.imageUrl,
           }));
           setSlides(normalized);
+          setCachedData(HERO_CACHE_KEY, normalized);
         } else {
           setSlides(fallbackImages);
         }
