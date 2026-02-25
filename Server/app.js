@@ -41,9 +41,10 @@ const isAllowedOrigin = (origin) => {
 app.use(
   cors({
     origin: "https://dholakiyaparivar.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
-);
+);  
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 
