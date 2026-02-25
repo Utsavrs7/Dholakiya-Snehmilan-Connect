@@ -4,6 +4,7 @@ const { Server } = require("socket.io");
 const app = require("./app");
 const connectDB = require("./src/config/db.js");
 const { setIO } = require("./src/services/realtime");
+const run = require("./scripts/seedSuperAdmin");
 
 const PORT = process.env.PORT || 5000;
 const rawOrigins = String(process.env.CORS_ORIGIN || "").trim();
@@ -20,7 +21,7 @@ if (isProd && !allowedOrigins.length) {
 
 // Start server only after DB connects
 connectDB()
-  .then(() => {
+  .then(async () => {
     const server = http.createServer(app);
     const io = new Server(server, {
       cors: {
@@ -35,6 +36,7 @@ connectDB()
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
+    await run(); // Seed super admin on startup
   })
   .catch((err) => {
     console.error("DB connection failed:", err.message);

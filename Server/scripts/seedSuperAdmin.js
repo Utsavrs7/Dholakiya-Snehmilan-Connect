@@ -1,6 +1,5 @@
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
-const connectDB = require("../src/config/db");
 const User = require("../src/models/User");
 
 // One-time seed script: create the first super admin safely
@@ -16,8 +15,6 @@ const run = async () => {
       console.error("Missing SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD in .env");
       process.exit(1);
     }
-
-    await connectDB();
 
     const exists = await User.findOne({ role: "super_admin" });
     if (exists) {
@@ -44,4 +41,4 @@ const run = async () => {
 };
 
 // Execute the seed script
-run();
+module.exports = run;
