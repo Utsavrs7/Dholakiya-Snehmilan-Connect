@@ -7,6 +7,7 @@ import {
 } from "react-icons/io5";
 import { DEFAULT_GALLERY_IMAGES } from "../utils/galleryData";
 import { getSocket } from "../utils/realtime";
+import { getCachedData, setCachedData } from "../utils/apiCache";
 
 // ==========================
 // GALLERY DATA (LOCAL + DEFAULT)
@@ -16,6 +17,8 @@ import { getSocket } from "../utils/realtime";
 // MEMOIZED GALLERY ITEM
 // ==========================
 import { memo } from "react";
+const GALLERY_CACHE_KEY = "gallery_items";
+const GALLERY_CACHE_TTL_MS = 2 * 60 * 1000;
 
 const GalleryItem = memo(({ img, index, onClick }) => (
   <div
@@ -62,7 +65,14 @@ export default function GallerySection() {
   const touchStartTimeRef = useRef(0);
   const closeBtnRef = useRef(null);
 
-  const loadGallery = async () => {
+  const loadGallery = async (forceRefresh = false) => {
+    if (!forceRefresh) {
+      const cachedGalleryItems = getCachedData(GALLERY_CACHE_KEY, GALLERY_CACHE_TTL_MS);
+      if (Array.isArray(cachedGalleryItems) && cachedGalleryItems.length > 0) {
+        setGalleryItems(cachedGalleryItems);
+        return;
+      }
+    }
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/gallery`);
       const data = await res.json();
@@ -75,6 +85,7 @@ export default function GallerySection() {
               : item.imageUrl,
         }));
         setGalleryItems(normalized);
+        setCachedData(GALLERY_CACHE_KEY, normalized);
       } else {
         setGalleryItems(DEFAULT_GALLERY_IMAGES);
       }
@@ -91,7 +102,7 @@ export default function GallerySection() {
   // Realtime refresh
   useEffect(() => {
     const socket = getSocket();
-    const handler = () => loadGallery();
+    const handler = () => loadGallery(true);
     socket.on("gallery:update", handler);
     return () => {
       socket.off("gallery:update", handler);

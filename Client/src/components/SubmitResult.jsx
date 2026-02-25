@@ -1,4 +1,4 @@
-﻿import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import { FaArrowLeft, FaClipboardCheck, FaHourglassHalf, FaSearch, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
@@ -193,6 +193,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
   const [selectedResultId, setSelectedResultId] = useState("");
   const [tracking, setTracking] = useState(null);
   const [forceFormMode, setForceFormMode] = useState(false);
+  const [hasCheckedExistingSubmission, setHasCheckedExistingSubmission] = useState(isAdminMode);
   const forceFormModeRef = useRef(false);
   const [accountStatus, setAccountStatus] = useState(
     isAdminMode ? "active" : (getUser()?.accountStatus || "active").toLowerCase()
@@ -277,18 +278,6 @@ export default function SubmitResult({ adminModeRole = "" }) {
   }, [API, navigate, adminModeRole]);
 
   useEffect(() => {
-    const onBack = () => {
-      if (isAdminMode) {
-        navigate(adminModeRole === "super_admin" ? "/admin/super" : "/admin/village", { replace: true });
-        return;
-      }
-      navigate("/#announcements", { replace: true });
-    };
-    window.addEventListener("popstate", onBack);
-    return () => window.removeEventListener("popstate", onBack);
-  }, [navigate, isAdminMode, adminModeRole]);
-
-  useEffect(() => {
     if (!isVillageAdminMode) return;
     const assignedVillage = String(adminProfile?.village || "").trim();
     if (!assignedVillage) return;
@@ -335,14 +324,22 @@ export default function SubmitResult({ adminModeRole = "" }) {
 
   useEffect(() => {
     const checkExistingSubmission = async () => {
-      if (isAdminMode) return;
+      if (isAdminMode) {
+        setHasCheckedExistingSubmission(true);
+        return;
+      }
       const { token } = getAuthContext();
-      if (!token) return;
+      if (!token) {
+        setHasCheckedExistingSubmission(true);
+        return;
+      }
 
       try {
         await fetchMyResults(token);
       } catch {
         // Ignore network errors
+      } finally {
+        setHasCheckedExistingSubmission(true);
       }
     };
 
@@ -538,7 +535,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
       navigate(adminModeRole === "super_admin" ? "/admin/super" : "/admin/village");
       return;
     }
-    navigate("/#announcements");
+    navigate("/", { state: { scrollTo: "announcements", activeSection: "announcements" } });
   };
 
   const submitAnother = () => {
@@ -699,7 +696,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
               `}</style>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                  <p className="text-sm md:text-base text-[#7a1f1f]/70 mb-1">પ્રગતિ ટ્રેકિંગ</p>
+                  <p className="text-sm md:text-base text-[#7a1f1f]/70 mb-1">પ્રગતિ ટ્રેકિંગ (Progress Status)</p>
                   <p className="text-xl md:text-2xl font-bold text-[#7a1f1f] leading-tight">
                     {tracking.full_name}
                   </p>
@@ -778,6 +775,16 @@ export default function SubmitResult({ adminModeRole = "" }) {
               )}
             </div>
           )}
+        </div>
+      </section>
+    );
+  }
+
+  if (!isAdminMode && !hasCheckedExistingSubmission) {
+    return (
+      <section className="min-h-screen bg-[#fff8ee] px-4 py-10 flex items-center justify-center">
+        <div className="rounded-2xl border border-[#e6d5c3] bg-white/90 px-6 py-4 text-sm text-[#7a1f1f]/80 shadow-sm">
+          Loading your latest result status...
         </div>
       </section>
     );

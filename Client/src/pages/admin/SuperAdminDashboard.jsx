@@ -46,6 +46,8 @@ export default function SuperAdminDashboard() {
   const [villageStatus, setVillageStatus] = useState("all");
   const [villageSubmittedBy, setVillageSubmittedBy] = useState("all");
   const [villageSearch, setVillageSearch] = useState("");
+  const currentYear = String(new Date().getFullYear());
+  const [villageYear, setVillageYear] = useState(currentYear);
   const [villageStandard, setVillageStandard] = useState("");
   const [villageMedium, setVillageMedium] = useState("");
   const [villageLoading, setVillageLoading] = useState(false);
@@ -68,6 +70,13 @@ export default function SuperAdminDashboard() {
   const [_settingsLoading, setSettingsLoading] = useState(false);
   const [_settingsError, setSettingsError] = useState("");
   const API_BASE = import.meta.env.VITE_API_URL;
+
+  const renderInlineLoader = (text) => (
+    <div className="sa-loader-card rounded-xl border border-[#eddcc7] px-4 py-3 text-sm text-[#7a1f1f]/80">
+      <span className="sa-loader-dot" aria-hidden="true" />
+      <span>{text}</span>
+    </div>
+  );
 
   const forceAdminRelogin = (message = "Session expired. Please login again.") => {
     clearAdminAuth("super_admin");
@@ -125,6 +134,7 @@ export default function SuperAdminDashboard() {
         if (Number.isFinite(routeState.villageLimit)) setVillageLimit(routeState.villageLimit);
         if (typeof routeState.villageStatus === "string") setVillageStatus(routeState.villageStatus);
         if (typeof routeState.villageSearch === "string") setVillageSearch(routeState.villageSearch);
+        if (typeof routeState.villageYear === "string") setVillageYear(routeState.villageYear);
         if (typeof routeState.villageStandard === "string") setVillageStandard(routeState.villageStandard);
         if (typeof routeState.villageMedium === "string") setVillageMedium(routeState.villageMedium);
         return;
@@ -136,6 +146,7 @@ export default function SuperAdminDashboard() {
       if (Number.isFinite(saved.villageLimit)) setVillageLimit(saved.villageLimit);
       if (typeof saved.villageStatus === "string") setVillageStatus(saved.villageStatus);
       if (typeof saved.villageSearch === "string") setVillageSearch(saved.villageSearch);
+      if (typeof saved.villageYear === "string") setVillageYear(saved.villageYear);
       if (typeof saved.villageStandard === "string") setVillageStandard(saved.villageStandard);
       if (typeof saved.villageMedium === "string") setVillageMedium(saved.villageMedium);
     } catch {
@@ -149,6 +160,7 @@ export default function SuperAdminDashboard() {
       villageLimit,
       villageStatus,
       villageSearch,
+      villageYear,
       villageStandard,
       villageMedium,
     };
@@ -158,6 +170,7 @@ export default function SuperAdminDashboard() {
     villageLimit,
     villageStatus,
     villageSearch,
+    villageYear,
     villageStandard,
     villageMedium,
   ]);
@@ -166,17 +179,19 @@ export default function SuperAdminDashboard() {
   const stats = useMemo(() => {
     const totals = adminSummary.reduce(
       (acc, v) => {
-        acc.total += v.total || 0;
-        acc.pending += v.pending || 0;
-        acc.accepted += v.accepted || 0;
-        acc.rejected += v.rejected || 0;
+        acc.total += Number(v.total || 0);
+        acc.pending += Number(v.pending ?? v.Pending ?? 0);
+        acc.reviewed += Number(v.reviewed ?? v.Reviewed ?? 0);
+        acc.accepted += Number(v.accepted ?? v.Accepted ?? 0);
+        acc.rejected += Number(v.rejected ?? v.Rejected ?? 0);
         return acc;
       },
-      { total: 0, pending: 0, accepted: 0, rejected: 0 }
+      { total: 0, pending: 0, reviewed: 0, accepted: 0, rejected: 0 }
     );
     return [
       { label: "Total Results", value: totals.total, tone: "stat-total" },
       { label: "Pending", value: totals.pending, tone: "stat-pending" },
+      { label: "Reviewed", value: totals.reviewed, tone: "stat-total" },
       { label: "Accepted", value: totals.accepted, tone: "stat-accepted" },
       { label: "Rejected", value: totals.rejected, tone: "stat-rejected" },
     ];
@@ -202,6 +217,12 @@ export default function SuperAdminDashboard() {
     return getSubmittedByLabel(key);
   };
 
+  const scrollToVillageResults = () => {
+    if (!villageResultsRef.current) return;
+    const top = villageResultsRef.current.getBoundingClientRect().top + window.scrollY - 86;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  };
+
   // Build summary map for village cards
   const summaryMap = useMemo(() => {
     const map = {};
@@ -224,6 +245,41 @@ export default function SuperAdminDashboard() {
     });
     return Array.from(set).sort();
   }, [adminList, adminSummary]);
+
+  const yearOptions = useMemo(() => {
+    const years = new Set([currentYear]);
+    villageResults.forEach((item) => {
+      const date = new Date(item?.createdAt || item?.updatedAt || 0);
+      if (!Number.isNaN(date.getTime())) {
+        const year = String(date.getFullYear());
+        if (Number(year) >= Number(currentYear)) years.add(year);
+      }
+    });
+    return Array.from(years).sort((a, b) => Number(a) - Number(b));
+  }, [villageResults, currentYear]);
+
+  const handleTopStatClick = (label) => {
+    const key = String(label || "").toLowerCase();
+    const nextStatus =
+      key === "pending"
+        ? "pending"
+        : key === "reviewed"
+        ? "reviewed"
+        : key === "accepted"
+        ? "accepted"
+        : key === "rejected"
+        ? "rejected"
+        : "all";
+    setVillageStatus(nextStatus);
+    setVillagePage(1);
+    if (!selectedVillage && villageOptions.length > 0) {
+      setSelectedVillage(villageOptions[0]);
+      return;
+    }
+    requestAnimationFrame(() => {
+      setTimeout(scrollToVillageResults, 20);
+    });
+  };
 
   // Map village to admin names (village admins)
   const adminNamesByVillage = useMemo(() => {
@@ -282,7 +338,7 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     if (!selectedVillage) return;
     fetchVillageResults(1, villageLimit);
-  }, [selectedVillage, villageStatus, villageSearch, villageStandard, villageMedium]);
+  }, [selectedVillage, villageStatus, villageSearch, villageYear, villageStandard, villageMedium]);
 
   useEffect(() => {
     if (!selectedVillage || !villageResultsRef.current) return;
@@ -402,6 +458,7 @@ export default function SuperAdminDashboard() {
         village: selectedVillage,
         status: villageStatus,
         search: villageSearch,
+        year: villageYear,
         standard: villageStandard,
         medium: villageMedium,
         page: String(nextPage),
@@ -737,6 +794,30 @@ export default function SuperAdminDashboard() {
           padding: 0.3rem;
           gap: 0.4rem;
         }
+        .super-admin-page .sa-loader-card {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.6rem;
+          background: #fffaf4;
+        }
+        .super-admin-page .sa-loader-dot {
+          width: 14px;
+          height: 14px;
+          border-radius: 999px;
+          border: 2px solid #e7c7a3;
+          border-top-color: #7a1f1f;
+          animation: saSpin 0.9s linear infinite;
+          flex-shrink: 0;
+        }
+        .super-admin-page .sa-loader-inline {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+        @keyframes saSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
         .admin-theme-dark .super-admin-page .village-results-panel {
           background: #1c273d !important;
           border-color: #344a72 !important;
@@ -791,6 +872,15 @@ export default function SuperAdminDashboard() {
         .admin-theme-dark .super-admin-page .village-results-panel .village-page-actions {
           background: #16253d !important;
           border-color: #4f6692 !important;
+        }
+        .admin-theme-dark .super-admin-page .sa-loader-card {
+          background: #16253d !important;
+          border-color: #4f6692 !important;
+          color: #dce7ff !important;
+        }
+        .admin-theme-dark .super-admin-page .sa-loader-dot {
+          border-color: #4f6692 !important;
+          border-top-color: #dce7ff !important;
         }
         .admin-theme-dark .super-admin-page .village-results-panel .village-page-btn-active {
           background: #7a1f1f !important;
@@ -871,16 +961,20 @@ export default function SuperAdminDashboard() {
           </button>
         </div>
       )}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {stats.map((s) => (
-          <div key={s.label} className={`admin-card stat-card ${s.tone} rounded-2xl p-4`}>
+          <button
+            key={s.label}
+            onClick={() => handleTopStatClick(s.label)}
+            className={`admin-card stat-card ${s.tone} rounded-2xl p-4 text-left transition hover:shadow-md`}
+          >
             <p className="stat-label text-xs uppercase tracking-[0.18em]">
               {s.label}
             </p>
             <p className="stat-value mt-2 text-2xl md:text-3xl font-semibold">
               {s.value}
             </p>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -894,9 +988,7 @@ export default function SuperAdminDashboard() {
           <div className="mt-4 space-y-3">
             {/* Active admin counter */}
             {activeCountLoading && (
-              <div className="rounded-xl border border-[#eddcc7] px-4 py-3 text-sm text-[#7a1f1f]/70">
-                Loading active count...
-              </div>
+              renderInlineLoader("Loading active admins...")
             )}
             {activeCountError && (
               <div className="rounded-xl border border-[#eddcc7] px-4 py-3 text-sm text-red-600">
@@ -913,8 +1005,8 @@ export default function SuperAdminDashboard() {
                 </span>
               </div>
             )}
+            </div>
           </div>
-        </div>
 
         {/* Quick Actions */}
         <div className="admin-card quick-actions-panel bg-white border border-[#eddcc7] rounded-2xl p-4 md:p-5">
@@ -973,15 +1065,23 @@ export default function SuperAdminDashboard() {
           <h2 className="text-lg font-semibold text-[#7a1f1f]">Admin Summary</h2>
           <button
             onClick={fetchSummary}
+            disabled={summaryLoading}
             className="summary-refresh-btn px-3 py-1 rounded-full border border-[#ead8c4] text-sm text-[#7a1f1f]"
           >
-            Refresh
+            {summaryLoading ? (
+              <span className="sa-loader-inline">
+                <span className="sa-loader-dot" aria-hidden="true" />
+                Refreshing
+              </span>
+            ) : (
+              "Refresh"
+            )}
           </button>
         </div>
 
         {/* Summary load state */}
         {summaryLoading && (
-          <div className="mt-3 text-sm text-[#7a1f1f]/70">Loading summary...</div>
+          <div className="mt-3">{renderInlineLoader("Loading village summary...")}</div>
         )}
         {summaryError && (
           <div className="mt-3 text-sm text-red-600">{summaryError}</div>
@@ -993,9 +1093,14 @@ export default function SuperAdminDashboard() {
               village,
               total: 0,
               pending: 0,
+              reviewed: 0,
               accepted: 0,
               rejected: 0,
             };
+            const pendingCount = Number(row.pending ?? row.Pending ?? 0);
+            const reviewedCount = Number(row.reviewed ?? row.Reviewed ?? 0);
+            const acceptedCount = Number(row.accepted ?? row.Accepted ?? 0);
+            const rejectedCount = Number(row.rejected ?? row.Rejected ?? 0);
             const names = adminNamesByVillage[village] || [];
             const isActive = selectedVillage === village;
             return (
@@ -1009,7 +1114,14 @@ export default function SuperAdminDashboard() {
                   isActive ? "border-[#7a1f1f] ring-2 ring-[#7a1f1f]/20" : "border-[#eddcc7]"
                 }`}
               >
-                <p className="font-medium">{row.village}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium">{row.village}</p>
+                  {pendingCount > 0 && (
+                    <span className="rounded-full bg-[#c2410c] text-white px-2 py-0.5 text-[10px] font-semibold">
+                      {pendingCount} NEW
+                    </span>
+                  )}
+                </div>
                 {/* Show admin name next to village */}
                   <p className="mt-1 text-xs text-[#7a1f1f]/60 line-clamp-2">
                   {names.length ? `Admin: ${names.join(", ")}` : "Admin: Unassigned"}
@@ -1019,13 +1131,16 @@ export default function SuperAdminDashboard() {
                     Total: {row.total}
                   </div>
                   <div className="summary-stat-chip rounded-lg bg-[#fff7ed] px-2 py-1">
-                    Pending: {row.pending}
+                    Pending: {pendingCount}
+                  </div>
+                  <div className="summary-stat-chip rounded-lg bg-[#eef2ff] px-2 py-1">
+                    Reviewed: {reviewedCount}
                   </div>
                   <div className="summary-stat-chip rounded-lg bg-[#ecfdf3] px-2 py-1">
-                    Accepted: {row.accepted}
+                    Accepted: {acceptedCount}
                   </div>
                   <div className="summary-stat-chip rounded-lg bg-[#fee2e2] px-2 py-1">
-                    Rejected: {row.rejected}
+                    Rejected: {rejectedCount}
                   </div>
                 </div>
               </button>
@@ -1412,7 +1527,7 @@ export default function SuperAdminDashboard() {
           </div>
 
           {/* Filters */}
-          <div className="mt-5 grid grid-cols-2 md:grid-cols-6 gap-2.5 md:gap-3.5">
+          <div className="mt-5 grid grid-cols-2 md:grid-cols-7 gap-2.5 md:gap-3.5">
             <select
               value={villageStatus}
               onChange={(e) => setVillageStatus(e.target.value)}
@@ -1420,8 +1535,20 @@ export default function SuperAdminDashboard() {
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
+              <option value="reviewed">Reviewed</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <select
+              value={villageYear}
+              onChange={(e) => setVillageYear(e.target.value)}
+              className="village-filter-control col-span-1 rounded-full border border-[#ead8c4] px-3 py-2 text-xs md:px-4 md:py-2.5 md:text-sm"
+            >
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
             </select>
             <input
               value={villageSearch}
@@ -1479,7 +1606,10 @@ export default function SuperAdminDashboard() {
                 {villageLoading && (
                   <tr>
                     <td colSpan={7} className="py-4 text-sm text-[#7a1f1f]/70">
-                      Loading results...
+                      <span className="sa-loader-inline">
+                        <span className="sa-loader-dot" aria-hidden="true" />
+                        Loading results...
+                      </span>
                     </td>
                   </tr>
                 )}

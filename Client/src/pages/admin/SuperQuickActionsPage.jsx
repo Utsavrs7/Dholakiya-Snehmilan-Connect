@@ -1986,7 +1986,7 @@ const buildExportPayload = (filters = exportFilters) => ({
           ref={actionDetailRef}
           className={`quick-selected mt-6 rounded-2xl border bg-white p-5 md:p-6 ${selectedStyle.active}`}
         >
-          <p className="text-xs uppercase tracking-[0.2em] text-[#4a456f]/70">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#4a456f]">
             Selected Action
           </p>
           <div className="mt-2 flex items-center gap-2">

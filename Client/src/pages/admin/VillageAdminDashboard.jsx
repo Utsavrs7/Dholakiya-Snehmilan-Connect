@@ -23,6 +23,8 @@ export default function VillageAdminDashboard() {
 
   const [statusFilter, setStatusFilter] = useState("All");
   const [submittedByFilter, setSubmittedByFilter] = useState("all");
+  const currentYear = String(new Date().getFullYear());
+  const [yearFilter, setYearFilter] = useState(currentYear);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -36,6 +38,7 @@ export default function VillageAdminDashboard() {
   const pageSize = 6;
   const selectAllTopRef = useRef(null);
   const selectAllHeaderRef = useRef(null);
+  const resultsSectionRef = useRef(null);
   const navigate = useNavigate();
   const { results: villageResults, updateResult, error: resultsError, refresh: refreshResults } = useAdminData();
   // Track viewed result IDs so "New Results" counter can decrease after visit
@@ -56,6 +59,28 @@ export default function VillageAdminDashboard() {
     return "";
   };
 
+  const getResultYear = (result) => {
+    const stamp = result?.createdAt || result?.updatedAt;
+    if (stamp) {
+      const date = new Date(stamp);
+      if (!Number.isNaN(date.getTime())) return String(date.getFullYear());
+    }
+    // Fallback for older normalized items where only submittedAt text is present
+    const fallbackText = String(result?.submittedAt || "");
+    const match = fallbackText.match(/\b(19|20)\d{2}\b/);
+    return match ? match[0] : "";
+  };
+
+  const yearOptions = useMemo(() => {
+    const years = new Set();
+    years.add(currentYear);
+    villageResults.forEach((r) => {
+      const y = getResultYear(r);
+      if (y && Number(y) >= Number(currentYear)) years.add(y);
+    });
+    return Array.from(years).sort((a, b) => Number(a) - Number(b));
+  }, [villageResults, currentYear]);
+
   const stats = useMemo(() => {
     const total = villageResults.length;
     const pending = villageResults.filter((r) => r.status === "pending").length;
@@ -75,8 +100,10 @@ export default function VillageAdminDashboard() {
   const filteredResults = useMemo(() => {
     const term = search.trim().toLowerCase();
     const statusValue = statusFilter === "All" ? "" : statusFilter.toLowerCase();
+    const selectedYear = String(yearFilter || "all").toLowerCase();
     return villageResults.filter((r) => {
       const submitRole = String(r.submitted_by_role || "user").toLowerCase();
+      const resultYear = getResultYear(r);
       const matchesStatus =
         statusValue === "" ? true : r.status === statusValue;
       const matchesSubmittedBy =
@@ -85,6 +112,7 @@ export default function VillageAdminDashboard() {
           : submittedByFilter === "you"
           ? submitRole === "village_admin"
           : submitRole === submittedByFilter;
+      const matchesYear = resultYear === selectedYear;
       const matchesSearch =
         term === ""
           ? true
@@ -92,9 +120,9 @@ export default function VillageAdminDashboard() {
               .join(" ")
               .toLowerCase()
               .includes(term);
-      return matchesStatus && matchesSubmittedBy && matchesSearch;
+      return matchesStatus && matchesSubmittedBy && matchesYear && matchesSearch;
     });
-  }, [statusFilter, submittedByFilter, search, villageResults]);
+  }, [statusFilter, submittedByFilter, yearFilter, search, villageResults]);
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(filteredResults.length / pageSize)),
@@ -126,6 +154,36 @@ export default function VillageAdminDashboard() {
       ? acceptedResults
       : [];
 
+  const yearScopedResults = useMemo(() => {
+    if (yearFilter === "all") return villageResults;
+    return villageResults.filter((r) => getResultYear(r) === String(yearFilter));
+  }, [villageResults, yearFilter]);
+
+  const yearSnapshot = useMemo(() => {
+    const total = yearScopedResults.length;
+    const pending = yearScopedResults.filter((r) => r.status === "pending").length;
+    const accepted = yearScopedResults.filter((r) => r.status === "accepted").length;
+    const rejected = yearScopedResults.filter((r) => r.status === "rejected").length;
+    const recent = yearScopedResults.slice(0, 3);
+    return { total, pending, accepted, rejected, recent };
+  }, [yearScopedResults]);
+
+  const yearDistribution = useMemo(() => {
+    const total = yearSnapshot.total || 0;
+    const getPercent = (count) => (total > 0 ? Math.round((count / total) * 100) : 0);
+    return [
+      { key: "pending", label: "Pending", count: yearSnapshot.pending, percent: getPercent(yearSnapshot.pending) },
+      { key: "accepted", label: "Accepted", count: yearSnapshot.accepted, percent: getPercent(yearSnapshot.accepted) },
+      { key: "rejected", label: "Rejected", count: yearSnapshot.rejected, percent: getPercent(yearSnapshot.rejected) },
+      {
+        key: "reviewed",
+        label: "Reviewed",
+        count: Math.max(0, total - yearSnapshot.pending - yearSnapshot.accepted - yearSnapshot.rejected),
+        percent: getPercent(Math.max(0, total - yearSnapshot.pending - yearSnapshot.accepted - yearSnapshot.rejected)),
+      },
+    ];
+  }, [yearSnapshot]);
+
   useEffect(() => {
     if (statusFilter !== "Pending" && statusFilter !== "Accepted") {
       setSelectedIds([]);
@@ -147,7 +205,7 @@ export default function VillageAdminDashboard() {
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, yearFilter]);
 
   useEffect(() => {
     fetchPendingUsers();
@@ -266,6 +324,19 @@ export default function VillageAdminDashboard() {
       return;
     }
     navigate(`/admin/village/result/${id}`);
+  };
+
+  const focusResultsSection = () => {
+    if (!resultsSectionRef.current) return;
+    const top = resultsSectionRef.current.getBoundingClientRect().top + window.scrollY - 86;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  };
+
+  const handleStatCardClick = (target) => {
+    setStatusFilter(target);
+    requestAnimationFrame(() => {
+      setTimeout(focusResultsSection, 20);
+    });
   };
 
   return (
@@ -452,6 +523,105 @@ export default function VillageAdminDashboard() {
           padding: 0.3rem;
           gap: 0.4rem;
         }
+        .village-admin-page .new-results-snapshot {
+          margin-top: 1rem;
+          border: 1px solid #ead2b7;
+          background: #fff7ec;
+          border-radius: 0.9rem;
+          padding: 0.8rem;
+        }
+        .village-admin-page .new-results-snapshot-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 0.5rem;
+        }
+        .village-admin-page .new-results-snapshot-chip {
+          border: 1px solid #ebd5bd;
+          background: #fffdf9;
+          border-radius: 0.7rem;
+          padding: 0.4rem 0.5rem;
+        }
+        .village-admin-page .new-results-snapshot-chip-label {
+          font-size: 10px;
+          color: rgba(122, 31, 31, 0.65);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .village-admin-page .new-results-snapshot-chip-value {
+          font-size: 15px;
+          font-weight: 700;
+          color: #7a1f1f;
+          margin-top: 0.05rem;
+        }
+        .village-admin-page .new-results-distribution {
+          margin-top: 0.65rem;
+        }
+        .village-admin-page .new-results-distribution-row {
+          border: 1px solid #ebd5bd;
+          border-radius: 0.7rem;
+          background: #fffdf8;
+          padding: 0.45rem 0.55rem;
+          margin-bottom: 0.4rem;
+        }
+        .village-admin-page .new-results-distribution-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 12px;
+          color: #7a1f1f;
+          margin-bottom: 0.3rem;
+        }
+        .village-admin-page .new-results-distribution-track {
+          height: 7px;
+          border-radius: 999px;
+          background: #f1e3d2;
+          overflow: hidden;
+        }
+        .village-admin-page .new-results-distribution-fill {
+          height: 100%;
+          border-radius: 999px;
+        }
+        .village-admin-page .new-results-distribution-fill.pending {
+          background: #fb923c;
+        }
+        .village-admin-page .new-results-distribution-fill.accepted {
+          background: #22c55e;
+        }
+        .village-admin-page .new-results-distribution-fill.rejected {
+          background: #ef4444;
+        }
+        .village-admin-page .new-results-distribution-fill.reviewed {
+          background: #3b82f6;
+        }
+        .village-admin-page .new-results-insight-card {
+          border: 1px solid #ebd5bd;
+          border-radius: 0.7rem;
+          background: #fffdf8;
+          padding: 0.5rem 0.6rem;
+        }
+        .village-admin-page .new-results-insight-title {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          color: rgba(122, 31, 31, 0.68);
+          margin-bottom: 0.35rem;
+        }
+        .village-admin-page .new-results-standard-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 12px;
+          color: #7a1f1f;
+          padding: 0.14rem 0;
+        }
+        .village-admin-page .new-results-standard-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 999px;
+          background: #c2410c;
+          display: inline-block;
+          margin-right: 0.35rem;
+        }
         .admin-theme-dark .village-admin-page .village-results-panel {
           background: #0b1f4482 !important;
           border-color: #344a72 !important;
@@ -508,6 +678,28 @@ export default function VillageAdminDashboard() {
           background: #16253d !important;
           border-color: #4f6692 !important;
         }
+        .admin-theme-dark .village-admin-page .new-results-snapshot {
+          background: #12253f !important;
+          border-color: #4f6692 !important;
+        }
+        .admin-theme-dark .village-admin-page .new-results-snapshot-chip,
+        .admin-theme-dark .village-admin-page .new-results-insight-card,
+        .admin-theme-dark .village-admin-page .new-results-distribution-row {
+          background: #162b49 !important;
+          border-color: #4d6694 !important;
+        }
+        .admin-theme-dark .village-admin-page .new-results-snapshot-chip-label {
+          color: #b5c6e8 !important;
+        }
+        .admin-theme-dark .village-admin-page .new-results-snapshot-chip-value {
+          color: #e7efff !important;
+        }
+        .admin-theme-dark .village-admin-page .new-results-distribution-meta {
+          color: #e7efff !important;
+        }
+        .admin-theme-dark .village-admin-page .new-results-distribution-track {
+          background: #2a4269 !important;
+        }
         .admin-theme-dark .village-admin-page .village-results-panel .village-page-btn-active {
           background: #7a1f1f !important;
           border-color: #7a1f1f !important;
@@ -558,17 +750,6 @@ export default function VillageAdminDashboard() {
           color: #dbeafe !important;
           border-color: #3b82f6 !important;
         }
-        .village-admin-page .approval-card-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 0.75rem;
-        }
-        .village-admin-page .approval-card-actions {
-          display: inline-flex;
-          gap: 0.5rem;
-          flex-shrink: 0;
-        }
         .village-admin-page .approval-panel-shell {
           background: linear-gradient(180deg, #fff5e8 0%, #fffaf2 100%);
           border: 1px solid #e4cfb4;
@@ -596,6 +777,32 @@ export default function VillageAdminDashboard() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
+        }
+        .village-admin-page .approval-user-row {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 1rem;
+        }
+        .village-admin-page .approval-user-main {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.65rem;
+          min-width: 0;
+          flex: 1;
+        }
+        .village-admin-page .approval-user-meta {
+          margin-top: 0.45rem;
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.35rem;
+        }
+        .village-admin-page .approval-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
           flex-shrink: 0;
         }
         .village-admin-page .approval-meta-chip {
@@ -653,13 +860,18 @@ export default function VillageAdminDashboard() {
           color: #fee2e2 !important;
         }
         @media (max-width: 767px) {
-          .village-admin-page .approval-card-row {
-            flex-direction: column;
-            align-items: flex-start;
+          .village-admin-page .new-results-snapshot-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
-          .village-admin-page .approval-card-row .shrink-0 {
+          .village-admin-page .approval-user-row {
+            flex-direction: column;
+          }
+          .village-admin-page .approval-card-actions {
             width: 100%;
             justify-content: flex-end;
+          }
+          .village-admin-page .approval-card-actions button {
+            flex: 1;
           }
         }
       `}</style>
@@ -684,7 +896,7 @@ export default function VillageAdminDashboard() {
           return (
             <button
               key={s.label}
-              onClick={() => setStatusFilter(target)}
+              onClick={() => handleStatCardClick(target)}
               className={`admin-card stat-card ${s.tone} rounded-2xl p-4 text-left transition ${
                 isActive ? "ring-2 ring-[#7a1f1f]/40" : "hover:shadow-md"
               }`}
@@ -701,8 +913,8 @@ export default function VillageAdminDashboard() {
       </div>
 
       {/* New results + user approvals */}
-      <div className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <div className="admin-card village-results-enter village-results-panel rounded-2xl p-5 md:p-6">
+      <div className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+        <div className="admin-card village-results-enter village-results-panel rounded-2xl p-5 md:p-6 self-start">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#7a1f1f]">New Results</h2>
             <div className="flex items-center gap-2">
@@ -718,6 +930,50 @@ export default function VillageAdminDashboard() {
               ? "No new results pending."
               : "Open any NEW result once, it will move to Reviewed automatically."}
           </p>
+          <div className="new-results-snapshot">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7a1f1f]/70">
+                {yearFilter === "all" ? "All Years Snapshot" : `${yearFilter} Snapshot`}
+              </p>
+              <span className="text-[11px] text-[#7a1f1f]/65">Quick view</span>
+            </div>
+            <div className="new-results-snapshot-grid">
+              <div className="new-results-snapshot-chip">
+                <p className="new-results-snapshot-chip-label">Total</p>
+                <p className="new-results-snapshot-chip-value">{yearSnapshot.total}</p>
+              </div>
+              <div className="new-results-snapshot-chip">
+                <p className="new-results-snapshot-chip-label">Pending</p>
+                <p className="new-results-snapshot-chip-value">{yearSnapshot.pending}</p>
+              </div>
+              <div className="new-results-snapshot-chip">
+                <p className="new-results-snapshot-chip-label">Accepted</p>
+                <p className="new-results-snapshot-chip-value">{yearSnapshot.accepted}</p>
+              </div>
+              <div className="new-results-snapshot-chip">
+                <p className="new-results-snapshot-chip-label">Rejected</p>
+                <p className="new-results-snapshot-chip-value">{yearSnapshot.rejected}</p>
+              </div>
+            </div>
+            <div className="new-results-distribution">
+              {yearDistribution.map((row) => (
+                <div key={row.key} className="new-results-distribution-row">
+                  <div className="new-results-distribution-meta">
+                    <span>{row.label}</span>
+                    <span className="font-semibold">
+                      {row.count} ({row.percent}%)
+                    </span>
+                  </div>
+                  <div className="new-results-distribution-track">
+                    <div
+                      className={`new-results-distribution-fill ${row.key}`}
+                      style={{ width: `${row.percent}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="admin-card village-results-enter village-results-panel approval-panel-shell rounded-2xl p-5 md:p-6">
@@ -743,37 +999,35 @@ export default function VillageAdminDashboard() {
                     idx % 2 === 1 ? "approval-user-card-alt" : ""
                   }`}
                 >
-                  <div className="approval-card-row">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-1 items-start gap-2.5">
+                  <div className="approval-user-row">
+                    <div className="approval-user-main">
                       <span className="approval-user-avatar">
                         {String(user.name || "U").trim().charAt(0).toUpperCase()}
                       </span>
-                      <div>
-                        <p className="font-semibold text-[#7a1f1f]">{user.name}</p>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                          <span className="approval-meta-chip">{user.village || "-"}</span>
-                          <span className="approval-meta-chip">{user.mobile || "-"}</span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[#7a1f1f] truncate">{user.name || "-"}</p>
+                        <p className="text-xs text-[#7a1f1f]/65 mt-0.5 break-all">{user.email || "-"}</p>
+                        <div className="approval-user-meta">
+                          <span className="approval-meta-chip">Village: {user.village || "-"}</span>
+                          <span className="approval-meta-chip">Mobile: {user.mobile || "-"}</span>
                         </div>
-                        <p className="text-xs text-[#7a1f1f]/65 mt-1">{user.email || "-"}</p>
                       </div>
-                      </div>
-                      <div className="ml-auto flex items-center gap-2 shrink-0 pl-4">
-                        <button
-                          onClick={() => handlePendingAction(user._id, "approve")}
-                          disabled={pendingLoading || pendingBulkBusy}
-                          className="approval-approve-btn rounded-md border px-3 py-1 text-[11px] font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handlePendingAction(user._id, "reject")}
-                          disabled={pendingLoading || pendingBulkBusy}
-                          className="approval-reject-btn rounded-md border px-3 py-1 text-[11px] font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                          Reject
-                        </button>
-                      </div>
+                    </div>
+                    <div className="approval-card-actions">
+                      <button
+                        onClick={() => handlePendingAction(user._id, "approve")}
+                        disabled={pendingLoading || pendingBulkBusy}
+                        className="approval-approve-btn rounded-md border px-3 py-1 text-[11px] font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handlePendingAction(user._id, "reject")}
+                        disabled={pendingLoading || pendingBulkBusy}
+                        className="approval-reject-btn rounded-md border px-3 py-1 text-[11px] font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        Reject
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -783,7 +1037,7 @@ export default function VillageAdminDashboard() {
         </div>
       </div>
 
-      <div className="mt-8 admin-card village-results-panel rounded-2xl p-5 md:p-6">
+      <div ref={resultsSectionRef} className="mt-8 admin-card village-results-panel rounded-2xl p-5 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <h2 className="text-lg font-semibold text-[#7a1f1f]">My Results</h2>
           <div className="flex flex-wrap gap-2">
@@ -823,6 +1077,20 @@ export default function VillageAdminDashboard() {
             <option value="super_admin">Super Admin</option>
             <option value="user">Users</option>
           </select>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <span className="text-xs md:text-sm text-[#7a1f1f]/70 whitespace-nowrap">Year:</span>
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="village-filter-control w-full md:w-auto rounded-full border border-[#ead8c4] px-4 py-2.5 text-sm"
+            >
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
           {(statusFilter === "Pending" || statusFilter === "Accepted") && (
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2 text-sm text-[#7a1f1f]">
@@ -1046,7 +1314,7 @@ export default function VillageAdminDashboard() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn-pop village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
+                className="hidden md:inline-flex btn-pop village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
               >
                 Prev
               </button>
@@ -1070,7 +1338,7 @@ export default function VillageAdminDashboard() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn-pop village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
+                className="hidden md:inline-flex btn-pop village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
               >
                 Next
               </button>

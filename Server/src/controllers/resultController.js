@@ -222,11 +222,20 @@ const getAdminSummary = async (req, res, next) => {
     const byVillage = {};
     summary.forEach((row) => {
       const village = row._id.village || "Unknown";
-      const status = row._id.status || "pending";
+      const status = String(row._id.status || "pending").toLowerCase();
       if (!byVillage[village]) {
-        byVillage[village] = { village, total: 0, pending: 0, accepted: 0, rejected: 0 };
+        byVillage[village] = {
+          village,
+          total: 0,
+          pending: 0,
+          reviewed: 0,
+          accepted: 0,
+          rejected: 0,
+        };
       }
-      byVillage[village][status] = row.count;
+      if (status === "pending" || status === "reviewed" || status === "accepted" || status === "rejected") {
+        byVillage[village][status] = row.count;
+      }
       byVillage[village].total += row.count;
     });
 
@@ -350,6 +359,7 @@ const getAdminResultsList = async (req, res, next) => {
     const {
       village,
       status,
+      year,
       search,
       standard,
       medium,
@@ -361,6 +371,14 @@ const getAdminResultsList = async (req, res, next) => {
     const filter = {};
     if (village) filter.village = village;
     if (status && status !== "all") filter.status = status;
+    if (year && year !== "all") {
+      const yearNum = parseInt(year, 10);
+      if (!Number.isNaN(yearNum) && yearNum > 1900 && yearNum < 3000) {
+        const from = new Date(Date.UTC(yearNum, 0, 1, 0, 0, 0, 0));
+        const to = new Date(Date.UTC(yearNum + 1, 0, 1, 0, 0, 0, 0));
+        filter.createdAt = { $gte: from, $lt: to };
+      }
+    }
     if (standard) filter.standard = new RegExp(standard, "i");
     if (medium) filter.medium = new RegExp(medium, "i");
     if (search) {

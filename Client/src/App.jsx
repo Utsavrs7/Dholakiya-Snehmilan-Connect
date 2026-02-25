@@ -42,29 +42,14 @@ function AppLoader() {
 
 export default function App() {
   const location = useLocation();
-  const navigate = useNavigate();
   const hideNavbar = location.pathname.startsWith("/admin");
-  const [booting, setBooting] = useState(!location.pathname.startsWith("/admin"));
+  const [booting, setBooting] = useState(() => !window.location.pathname.startsWith("/admin"));
 
   useEffect(() => {
-    if (location.pathname.startsWith("/admin")) {
-      setBooting(false);
-      return;
-    }
-    const timer = setTimeout(() => setBooting(false), 800);
+    if (window.location.pathname.startsWith("/admin")) return;
+    const timer = setTimeout(() => setBooting(false), 450);
     return () => clearTimeout(timer);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      if (!window.location.pathname.startsWith("/admin")) {
-        navigate(1);
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [navigate]);
+  }, []);
 
   // Admin route guard: require login + role
   const AdminRoute = ({ allow, children }) => {
