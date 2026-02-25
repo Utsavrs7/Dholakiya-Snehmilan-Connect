@@ -24,8 +24,23 @@ const isAllowedOrigin = (origin) => {
 };
 
 // Core middleware
+// app.use(cors({
+//   origin: "https://dholakiyaparivar.vercel.app",
+//   credentials: true
+// }));
+
 app.use(cors({
-  origin: "https://dholakiyaparivar.vercel.app",
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (
+      origin.includes("vercel.app")
+    ) {
+      return callback(null, true);
+    }
+
+    callback(new Error("Not allowed by CORS"));
+  },
   credentials: true
 }));
 app.use(express.json({ limit: "1mb" }));
