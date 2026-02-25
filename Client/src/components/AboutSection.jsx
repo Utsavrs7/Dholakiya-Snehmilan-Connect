@@ -23,7 +23,7 @@ export default function AboutSection() {
     { name: "શ્રી  મહેશભાઈ જે. ધોળકિયા ", village: "લીમડા ", phone: "" },
     { name: "શ્રી  મનહરભાઈ બી. ધોળકિયા ", village: "ખાખરીયા ", phone: "" },
     { name: "શ્રી  ભરતભાઈ જે. ધોળકિયા ", village: "ઉંટવડ ", phone: "" },
-    { name: "શ્રી  કારમશીભાઈ ઝેડ. ધોળકિયા ", village: "તાજપર ", phone: "" },
+    { name: "શ્રી  કરમશીભાઈ ઝેડ. ધોળકિયા ", village: "તાજપર ", phone: "" },
     { name: "શ્રી  વિજયભાઈ સી. ધોળકિયા ", village: "માંડવી ", phone: "" },
     { name: "શ્રી  રમેશભાઈ કે. ધોળકિયા ", village: "રામપર ", phone: "" },
     { name: "શ્રી  ભરતભાઈ એમ. ધોળકિયા ", village: "દામનગર ", phone: "" },
