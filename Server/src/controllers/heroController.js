@@ -1,5 +1,6 @@
 const HeroSlide = require("../models/HeroSlide");
 const { emitUpdate } = require("../services/realtime");
+const { getUploadedImageUrl } = require("../services/imageStorage");
 
 // Public: list active hero slides
 const getPublicHeroSlides = async (req, res, next) => {
@@ -32,7 +33,7 @@ const toBool = (value) => {
 const createHeroSlide = async (req, res, next) => {
   try {
     const { title, subtitle, imageUrl, order, isActive } = req.body;
-    const fileUrl = req.file ? `/uploads/${req.file.filename}` : "";
+    const fileUrl = await getUploadedImageUrl(req.file, "snehmilan-connect/hero");
     const finalUrl = fileUrl || imageUrl;
     if (!finalUrl) {
       return res.status(400).json({ message: "Image file or URL is required" });
@@ -59,7 +60,7 @@ const updateHeroSlide = async (req, res, next) => {
     if (!item) return res.status(404).json({ message: "Hero slide not found" });
     const { title, subtitle, imageUrl, order, isActive } = req.body;
     if (req.file) {
-      item.imageUrl = `/uploads/${req.file.filename}`;
+      item.imageUrl = await getUploadedImageUrl(req.file, "snehmilan-connect/hero");
     } else if (imageUrl) {
       item.imageUrl = imageUrl;
     }

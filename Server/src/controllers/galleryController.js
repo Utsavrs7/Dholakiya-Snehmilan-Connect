@@ -1,5 +1,6 @@
 const GalleryImage = require("../models/GalleryImage");
 const { emitUpdate } = require("../services/realtime");
+const { getUploadedImageUrl } = require("../services/imageStorage");
 
 // Public: list gallery images
 const getGallery = async (req, res, next) => {
@@ -18,7 +19,7 @@ const createGalleryImage = async (req, res, next) => {
   try {
     const { title, category, imageUrl } = req.body;
     // Image from multer (file) or URL
-    const fileUrl = req.file ? `/uploads/${req.file.filename}` : "";
+    const fileUrl = await getUploadedImageUrl(req.file, "snehmilan-connect/gallery");
     const finalUrl = fileUrl || imageUrl;
     if (!finalUrl) {
       return res.status(400).json({ message: "Image file or URL is required" });
@@ -44,7 +45,7 @@ const updateGalleryImage = async (req, res, next) => {
     const { title, category, imageUrl } = req.body;
     // If file provided, replace imageUrl
     if (req.file) {
-      item.imageUrl = `/uploads/${req.file.filename}`;
+      item.imageUrl = await getUploadedImageUrl(req.file, "snehmilan-connect/gallery");
     } else if (imageUrl) {
       item.imageUrl = imageUrl;
     }

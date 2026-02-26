@@ -1,6 +1,7 @@
 const Result = require("../models/Result");
 const path = require("path");
 const { createWorker } = require('tesseract.js');
+const { getUploadedImageUrl } = require("../services/imageStorage");
 
 const normalizeGujaratiSurname = (value = "") =>
   String(value).replaceAll("ધોળકયા", "ધોળકિયા");
@@ -135,8 +136,8 @@ const submitResult = async (req, res, next) => {
       village = req.user.village;
     }
 
-    // Photo file comes from multer and is stored in uploads
-    const photo = req.file ? `/uploads/${req.file.filename}` : "";
+    // Photo file is uploaded to Cloudinary when configured, else local /uploads fallback.
+    const photo = await getUploadedImageUrl(req.file, "snehmilan-connect/results");
 
     if (!full_name || !mobile || !email || !standard || !percentage || !medium || !village || !photo) {
       return res.status(400).json({ message: "Missing required fields" });
