@@ -13,9 +13,14 @@ const exportRoutes = require("./routes/export");
 
 const app = express();
 const rawOrigins = String(process.env.CORS_ORIGIN || "").trim();
-const allowedOrigins = rawOrigins
+const envOrigins = rawOrigins
   ? rawOrigins.split(",").map((x) => x.trim().replace(/\/+$/, "")).filter(Boolean)
   : [];
+const defaultProdOrigins = [
+  "https://dholakiyaparivar.vercel.app",
+  "https://www.dholakiyaparivar.vercel.app",
+];
+const allowedOrigins = Array.from(new Set([...envOrigins, ...defaultProdOrigins]));
 const isProd = process.env.NODE_ENV === "production";
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
@@ -43,9 +48,6 @@ app.use(
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       if (!isProd) return callback(null, true);
-      if (!allowedOrigins.length) {
-        return callback(new Error("CORS is not configured for production."));
-      }
       if (isAllowedOrigin(origin)) return callback(null, true);
       return callback(new Error("Origin not allowed by CORS."));
     },
