@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { clearAuth, getUser } from "../utils/auth"
+import { clearAuth, getToken, getUser, setAuthUser } from "../utils/auth"
 import { getSocket } from "../utils/realtime"
 import Lottie from "lottie-react"
 import boyProfileAnimation from "../../public/Lottie/profile.json"
@@ -224,6 +224,37 @@ export default function Navbar() {
     }
   }, [])
 
+  useEffect(() => {
+    const token = getToken()
+    if (!token) return
+    let ignore = false
+    const syncProfile = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) return
+        const me = await res.json()
+        if (ignore) return
+        setAuthUser(me)
+      } catch {
+        // Ignore profile sync failures in navbar.
+      }
+    }
+    syncProfile()
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const userStatus = String(user?.accountStatus || "active").toLowerCase()
+  const statusLabel =
+    userStatus === "pending"
+      ? "Pending Approval"
+      : userStatus === "rejected"
+        ? "Rejected"
+        : "Active"
+
   const handleLogout = () => {
     clearAuth()
     setProfileOpen(false)
@@ -331,6 +362,9 @@ export default function Navbar() {
                         {user.name}
                       </p>
                       <p className="mt-1 text-xs text-[#7a1f1f]/75 break-all">{user.email}</p>
+                      <p className="mt-2 text-[11px] font-semibold text-[#7a1f1f]/80">
+                        Status: {statusLabel}
+                      </p>
                     </div>
                     {user.mobile && (
                       <p className="px-5 pt-2 text-xs font-medium text-[#7a1f1f]/70 transition-colors duration-200 hover:text-[#7a1f1f]">{user.mobile}</p>
@@ -462,6 +496,7 @@ export default function Navbar() {
                 <div>
                   <p className="text-sm font-semibold">{user.name}</p>
                   <p className="text-xs text-white/70">{user.email}</p>
+                  <p className="text-xs text-yellow-200 mt-1">Status: {statusLabel}</p>
                 </div>
               </div>
               {user.mobile && (

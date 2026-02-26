@@ -180,8 +180,13 @@ const findUserByChannelAndIdentifier = async (channel, identifier) => {
   const canonicalInputMobile = toCanonicalIndianMobile(identifier);
   if (!canonicalInputMobile) return null;
 
-  // Existing data may contain formatted numbers (+91, spaces). Normalize in JS for robust match.
-  const usersWithMobile = await User.find({ mobile: { $exists: true, $ne: "" } });
+  // Fast path for canonical data (current app stores 10-digit mobile).
+  const exactMatches = await User.find({ mobile: canonicalInputMobile }).limit(2);
+  if (exactMatches.length > 1) return "AMBIGUOUS_MOBILE";
+  if (exactMatches.length === 1) return exactMatches[0];
+
+  // Fallback for legacy formatted numbers (+91/spaces) without scanning every request forever.
+  const usersWithMobile = await User.find({ mobile: { $exists: true, $ne: "" } }).limit(5000);
   const matchedUsers = usersWithMobile.filter(
     (user) => toCanonicalIndianMobile(user.mobile) === canonicalInputMobile
   );
@@ -195,7 +200,9 @@ const findUserByChannelAndIdentifier = async (channel, identifier) => {
 const findUsersByNormalizedMobile = async (identifier) => {
   const canonicalInputMobile = toCanonicalIndianMobile(identifier);
   if (!canonicalInputMobile) return [];
-  const usersWithMobile = await User.find({ mobile: { $exists: true, $ne: "" } });
+  const exactMatches = await User.find({ mobile: canonicalInputMobile });
+  if (exactMatches.length) return exactMatches;
+  const usersWithMobile = await User.find({ mobile: { $exists: true, $ne: "" } }).limit(5000);
   return usersWithMobile.filter(
     (user) => toCanonicalIndianMobile(user.mobile) === canonicalInputMobile
   );
@@ -425,7 +432,11 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Update last login timestamp for active status
+    // Update last login timestamp and backfill canonical mobile for older records.
+    const canonicalMobile = toCanonicalIndianMobile(user.mobile);
+    if (canonicalMobile && user.mobile !== canonicalMobile) {
+      user.mobile = canonicalMobile;
+    }
     user.lastLogin = new Date();
     await user.save();
 

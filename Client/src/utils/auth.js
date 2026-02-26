@@ -41,6 +41,14 @@ export const setAuth = (token, user, remember = true) => {
   window.dispatchEvent(new Event("auth_changed"));
 };
 
+export const setAuthUser = (user) => {
+  const localToken = localStorage.getItem("auth_token");
+  const sessionToken = sessionStorage.getItem("auth_token");
+  if (localToken) localStorage.setItem("auth_user", JSON.stringify(user));
+  if (sessionToken) sessionStorage.setItem("auth_user", JSON.stringify(user));
+  window.dispatchEvent(new Event("auth_changed"));
+};
+
 export const clearAuth = () => {
   localStorage.removeItem("auth_token");
   localStorage.removeItem("auth_user");
