@@ -1,5 +1,4 @@
 const Result = require("../models/Result");
-const path = require("path");
 const { createWorker } = require('tesseract.js');
 const { getUploadedImageUrl } = require("../services/imageStorage");
 
@@ -74,7 +73,7 @@ const extractDataFromPhoto = async (req, res, next) => {
     const photo = req.file;
     if (!photo) return res.status(400).json({ message: "Photo required" });
 
-    const photoPath = path.join(__dirname, "../../uploads", photo.filename);
+    const photoPath = photo.path;
     const worker = createWorker();
     await worker.load();
     await worker.loadLanguage('eng');
@@ -149,7 +148,7 @@ const submitResult = async (req, res, next) => {
       village = req.user.village;
     }
 
-    // Photo file is uploaded to Cloudinary when configured, else local /uploads fallback.
+    // Photo file is uploaded directly to Cloudinary via multer storage.
     const photo = await getUploadedImageUrl(req.file, "snehmilan-connect/results");
 
     if (!full_name || !mobile || !email || !standard || !percentage || !medium || !village || !photo) {

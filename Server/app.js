@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-const path = require("path");
 const authRoutes = require("./src/routes/auth");
 const resultRoutes = require("./src/routes/results");
 const galleryRoutes = require("./src/routes/gallery");
@@ -64,9 +63,6 @@ app.use((req, res, next) => {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   next();
 });
-
-// Serve uploaded images
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Health check
 app.get("/", (req, res) => {
