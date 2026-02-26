@@ -269,24 +269,6 @@ export default function Navbar() {
     navigate("/")
   }
 
-  const handleMagneticMove = (e) => {
-    const el = e.currentTarget
-    const rect = el.getBoundingClientRect()
-    const relX = e.clientX - rect.left - rect.width / 2
-    const relY = e.clientY - rect.top - rect.height / 2
-    const strength = 6
-    const moveX = (relX / (rect.width / 2 || 1)) * strength
-    const moveY = (relY / (rect.height / 2 || 1)) * strength
-    el.style.setProperty("--mx", `${moveX.toFixed(2)}px`)
-    el.style.setProperty("--my", `${moveY.toFixed(2)}px`)
-  }
-
-  const resetMagnetic = (e) => {
-    const el = e.currentTarget
-    el.style.setProperty("--mx", "0px")
-    el.style.setProperty("--my", "0px")
-  }
-
   return (
     <>
       {/* ================= NAVBAR ================= */}
@@ -325,28 +307,21 @@ export default function Navbar() {
                 key={item.id}
                 type="button"
                 onClick={() => handleNavClick(item.id)}
-                onMouseMove={handleMagneticMove}
-                onMouseLeave={resetMagnetic}
-                style={{ "--mx": "0px", "--my": "0px" }}
                 className={`
-                  group relative px-3 py-2 rounded-full transition-all duration-300
-                  hover:text-white hover:bg-white/10 hover:backdrop-blur-sm hover:-translate-y-[1px]
+                  group relative rounded-full p-[1px] transition-all duration-300 hover:-translate-y-[1px]
                   after:absolute after:left-0 after:-bottom-1
                   after:h-[2px] after:w-0 after:bg-gradient-to-r after:from-[#ffd166] after:to-[#ffe9a3]
                   after:transition-all after:duration-300
                   hover:after:w-full
-                  ${activeSection === item.id ? "text-white bg-white/10 after:w-full" : ""}
+                  ${activeSection === item.id ? "after:w-full" : ""}
                 `}
               >
-                <span className="inline-flex items-center gap-2 transition-transform duration-300 ease-out [transform:translate3d(var(--mx),var(--my),0)]">
-                  <span className="relative block h-5 overflow-hidden leading-5">
-                    <span className="block transition-transform duration-300 ease-out group-hover:-translate-y-full">
-                      {item.label}
-                    </span>
-                    <span className="block text-yellow-300 transition-transform duration-300 ease-out group-hover:-translate-y-full">
-                      {item.label}
-                    </span>
-                  </span>
+                <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <span className="absolute -inset-[1px] rounded-full bg-[conic-gradient(from_0deg,_#ffd166,_#ff8a5b,_#ffe9a3,_#ffd166)] animate-[spin_2.2s_linear_infinite]" />
+                  <span className="absolute inset-[1px] rounded-full bg-[#6b1d1d]" />
+                </span>
+                <span className={`relative z-10 inline-flex items-center gap-2 px-3 py-2 rounded-full transition-colors duration-300 ${activeSection === item.id ? "bg-white/10 text-white" : "text-white group-hover:bg-white/10"}`}>
+                  {item.label}
                   {item.id === "announcements" && unreadAnnouncementCount > 0 && (
                     <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-yellow-400 px-1.5 text-[11px] font-bold text-black">
                       {unreadAnnouncementCount > 99 ? "99+" : unreadAnnouncementCount}
@@ -359,20 +334,14 @@ export default function Navbar() {
             {!user ? (
               <Link
                 to="/login"
-                onMouseMove={handleMagneticMove}
-                onMouseLeave={resetMagnetic}
-                style={{ "--mx": "0px", "--my": "0px" }}
-                className="group ml-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-semibold hover:bg-yellow-500 transition"
+                className="group relative ml-2 rounded-full p-[1px] transition-all duration-300 hover:-translate-y-[1px]"
               >
-                <span className="inline-block transition-transform duration-300 ease-out [transform:translate3d(var(--mx),var(--my),0)]">
-                  <span className="relative block h-5 overflow-hidden leading-5">
-                    <span className="block transition-transform duration-300 ease-out group-hover:-translate-y-full">
-                      Login
-                    </span>
-                    <span className="block text-[#7a1f1f] transition-transform duration-300 ease-out group-hover:-translate-y-full">
-                      Login
-                    </span>
-                  </span>
+                <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <span className="absolute -inset-[1px] rounded-full bg-[conic-gradient(from_0deg,_#ffd166,_#ff8a5b,_#ffe9a3,_#ffd166)] animate-[spin_2.2s_linear_infinite]" />
+                  <span className="absolute inset-[1px] rounded-full bg-[#6b1d1d]" />
+                </span>
+                <span className="relative z-10 inline-block rounded-full bg-yellow-400 px-4 py-2 font-semibold text-black transition-colors duration-300 group-hover:bg-yellow-500">
+                  Login
                 </span>
               </Link>
             ) : (
