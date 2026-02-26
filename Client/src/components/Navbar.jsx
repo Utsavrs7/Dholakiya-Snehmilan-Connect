@@ -301,26 +301,24 @@ export default function Navbar() {
           </Link>
 
           {/* ===== DESKTOP MENU ===== */}
-          <ul className="hidden md:flex gap-6 text-sm font-medium items-center">
+          <ul className="hidden md:flex gap-6 text-sm font-medium items-center group/nav">
             {sections.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => handleNavClick(item.id)}
                 className={`
-                  group relative rounded-full p-[1px] transition-all duration-300 hover:-translate-y-[1px]
+                  relative px-3 py-2 rounded-full transition-all duration-300
+                  group-hover/nav:opacity-40 group-hover/nav:blur-[1px]
+                  hover:!opacity-100 hover:!blur-0 hover:text-yellow-300
                   after:absolute after:left-0 after:-bottom-1
                   after:h-[2px] after:w-0 after:bg-gradient-to-r after:from-[#ffd166] after:to-[#ffe9a3]
                   after:transition-all after:duration-300
                   hover:after:w-full
-                  ${activeSection === item.id ? "after:w-full" : ""}
+                  ${activeSection === item.id ? "text-yellow-300 after:w-full" : "text-white"}
                 `}
               >
-                <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <span className="absolute -inset-[1px] rounded-full bg-[conic-gradient(from_0deg,_#ffd166,_#ff8a5b,_#ffe9a3,_#ffd166)] animate-[spin_2.2s_linear_infinite]" />
-                  <span className="absolute inset-[1px] rounded-full bg-[#6b1d1d]" />
-                </span>
-                <span className={`relative z-10 inline-flex items-center gap-2 px-3 py-2 rounded-full transition-colors duration-300 ${activeSection === item.id ? "bg-white/10 text-white" : "text-white group-hover:bg-white/10"}`}>
+                <span className="inline-flex items-center gap-2">
                   {item.label}
                   {item.id === "announcements" && unreadAnnouncementCount > 0 && (
                     <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-yellow-400 px-1.5 text-[11px] font-bold text-black">
@@ -334,15 +332,9 @@ export default function Navbar() {
             {!user ? (
               <Link
                 to="/login"
-                className="group relative ml-2 rounded-full p-[1px] transition-all duration-300 hover:-translate-y-[1px]"
+                className="ml-2 rounded-full bg-yellow-400 text-black px-4 py-2 font-semibold transition-all duration-300 hover:bg-yellow-500 group-hover/nav:opacity-40 group-hover/nav:blur-[1px] hover:!opacity-100 hover:!blur-0"
               >
-                <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <span className="absolute -inset-[1px] rounded-full bg-[conic-gradient(from_0deg,_#ffd166,_#ff8a5b,_#ffe9a3,_#ffd166)] animate-[spin_2.2s_linear_infinite]" />
-                  <span className="absolute inset-[1px] rounded-full bg-[#6b1d1d]" />
-                </span>
-                <span className="relative z-10 inline-block rounded-full bg-yellow-400 px-4 py-2 font-semibold text-black transition-colors duration-300 group-hover:bg-yellow-500">
-                  Login
-                </span>
+                Login
               </Link>
             ) : (
               <div className="relative ml-2" ref={profileRef}>
@@ -473,7 +465,7 @@ export default function Navbar() {
               }}
               className={`
                 text-left px-4 py-3 rounded-xl transition
-                hover:bg-white/10
+                hover:text-yellow-300
                 ${activeSection === item.id ? "text-yellow-300 border-l-4 border-yellow-300 bg-white/5 pl-3" : ""}
               `}
             >
