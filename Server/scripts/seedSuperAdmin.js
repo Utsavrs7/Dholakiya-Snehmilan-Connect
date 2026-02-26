@@ -13,13 +13,13 @@ const run = async () => {
 
     if (!email || !password) {
       console.error("Missing SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD in .env");
-      process.exit(1);
+      return { ok: false, reason: "missing_env" };
     }
 
     const exists = await User.findOne({ role: "super_admin" });
     if (exists) {
       console.log("Super admin already exists. Skipping.");
-      process.exit(0);
+      return { ok: true, skipped: true };
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -33,10 +33,10 @@ const run = async () => {
     });
 
     console.log("Super admin created:", { id: user._id.toString(), email: user.email });
-    process.exit(0);
+    return { ok: true, created: true };
   } catch (err) {
     console.error("Seed failed:", err.message);
-    process.exit(1);
+    return { ok: false, reason: "seed_failed", error: err.message };
   }
 };
 

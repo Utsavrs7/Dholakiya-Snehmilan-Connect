@@ -14,12 +14,12 @@ const exportRoutes = require("./routes/export");
 const app = express();
 const rawOrigins = String(process.env.CORS_ORIGIN || "").trim();
 const allowedOrigins = rawOrigins
-  ? rawOrigins.split(",").map((x) => x.trim()).filter(Boolean)
+  ? rawOrigins.split(",").map((x) => x.trim().replace(/\/+$/, "")).filter(Boolean)
   : [];
 const isProd = process.env.NODE_ENV === "production";
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
-  return allowedOrigins.includes(origin);
+  return allowedOrigins.includes(String(origin).replace(/\/+$/, ""));
 };
 
 // Core middleware
@@ -40,7 +40,15 @@ const isAllowedOrigin = (origin) => {
 
 app.use(
   cors({
-    origin: "https://dholakiyaparivar.vercel.app",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (!isProd) return callback(null, true);
+      if (!allowedOrigins.length) {
+        return callback(new Error("CORS is not configured for production."));
+      }
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error("Origin not allowed by CORS."));
+    },
     credentials: true,
   })
 );  
