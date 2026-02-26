@@ -269,6 +269,24 @@ export default function Navbar() {
     navigate("/")
   }
 
+  const handleMagneticMove = (e) => {
+    const el = e.currentTarget
+    const rect = el.getBoundingClientRect()
+    const relX = e.clientX - rect.left - rect.width / 2
+    const relY = e.clientY - rect.top - rect.height / 2
+    const strength = 6
+    const moveX = (relX / (rect.width / 2 || 1)) * strength
+    const moveY = (relY / (rect.height / 2 || 1)) * strength
+    el.style.setProperty("--mx", `${moveX.toFixed(2)}px`)
+    el.style.setProperty("--my", `${moveY.toFixed(2)}px`)
+  }
+
+  const resetMagnetic = (e) => {
+    const el = e.currentTarget
+    el.style.setProperty("--mx", "0px")
+    el.style.setProperty("--my", "0px")
+  }
+
   return (
     <>
       {/* ================= NAVBAR ================= */}
@@ -307,6 +325,9 @@ export default function Navbar() {
                 key={item.id}
                 type="button"
                 onClick={() => handleNavClick(item.id)}
+                onMouseMove={handleMagneticMove}
+                onMouseLeave={resetMagnetic}
+                style={{ "--mx": "0px", "--my": "0px" }}
                 className={`
                   relative px-3 py-2 rounded-full transition-all duration-300
                   hover:text-white hover:bg-white/10 hover:backdrop-blur-sm hover:-translate-y-[1px]
@@ -317,7 +338,7 @@ export default function Navbar() {
                   ${activeSection === item.id ? "text-white bg-white/10 after:w-full" : ""}
                 `}
               >
-                <span className="inline-flex items-center gap-2">
+                <span className="inline-flex items-center gap-2 transition-transform duration-300 ease-out [transform:translate3d(var(--mx),var(--my),0)]">
                   {item.label}
                   {item.id === "announcements" && unreadAnnouncementCount > 0 && (
                     <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-yellow-400 px-1.5 text-[11px] font-bold text-black">
@@ -331,9 +352,14 @@ export default function Navbar() {
             {!user ? (
               <Link
                 to="/login"
+                onMouseMove={handleMagneticMove}
+                onMouseLeave={resetMagnetic}
+                style={{ "--mx": "0px", "--my": "0px" }}
                 className="ml-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-semibold hover:bg-yellow-500 transition"
               >
-                Login
+                <span className="inline-block transition-transform duration-300 ease-out [transform:translate3d(var(--mx),var(--my),0)]">
+                  Login
+                </span>
               </Link>
             ) : (
               <div className="relative ml-2" ref={profileRef}>
