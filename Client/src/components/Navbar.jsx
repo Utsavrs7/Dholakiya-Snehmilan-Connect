@@ -329,7 +329,7 @@ export default function Navbar() {
                 onMouseLeave={resetMagnetic}
                 style={{ "--mx": "0px", "--my": "0px" }}
                 className={`
-                  relative px-3 py-2 rounded-full transition-all duration-300
+                  group relative px-3 py-2 rounded-full transition-all duration-300
                   hover:text-white hover:bg-white/10 hover:backdrop-blur-sm hover:-translate-y-[1px]
                   after:absolute after:left-0 after:-bottom-1
                   after:h-[2px] after:w-0 after:bg-gradient-to-r after:from-[#ffd166] after:to-[#ffe9a3]
@@ -339,7 +339,14 @@ export default function Navbar() {
                 `}
               >
                 <span className="inline-flex items-center gap-2 transition-transform duration-300 ease-out [transform:translate3d(var(--mx),var(--my),0)]">
-                  {item.label}
+                  <span className="relative block h-5 overflow-hidden leading-5">
+                    <span className="block transition-transform duration-300 ease-out group-hover:-translate-y-full">
+                      {item.label}
+                    </span>
+                    <span className="block text-yellow-300 transition-transform duration-300 ease-out group-hover:-translate-y-full">
+                      {item.label}
+                    </span>
+                  </span>
                   {item.id === "announcements" && unreadAnnouncementCount > 0 && (
                     <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-yellow-400 px-1.5 text-[11px] font-bold text-black">
                       {unreadAnnouncementCount > 99 ? "99+" : unreadAnnouncementCount}
@@ -355,10 +362,17 @@ export default function Navbar() {
                 onMouseMove={handleMagneticMove}
                 onMouseLeave={resetMagnetic}
                 style={{ "--mx": "0px", "--my": "0px" }}
-                className="ml-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-semibold hover:bg-yellow-500 transition"
+                className="group ml-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-semibold hover:bg-yellow-500 transition"
               >
                 <span className="inline-block transition-transform duration-300 ease-out [transform:translate3d(var(--mx),var(--my),0)]">
-                  Login
+                  <span className="relative block h-5 overflow-hidden leading-5">
+                    <span className="block transition-transform duration-300 ease-out group-hover:-translate-y-full">
+                      Login
+                    </span>
+                    <span className="block text-[#7a1f1f] transition-transform duration-300 ease-out group-hover:-translate-y-full">
+                      Login
+                    </span>
+                  </span>
                 </span>
               </Link>
             ) : (
