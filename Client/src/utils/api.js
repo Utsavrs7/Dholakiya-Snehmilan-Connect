@@ -1,4 +1,9 @@
-const rawBase = String(import.meta.env.VITE_API_URL || "").trim();
+const fallbackProdBase =
+  typeof window !== "undefined" && /vercel\.app$/i.test(window.location.hostname)
+    ? "https://dholakiya-snehmilan-connect-2.onrender.com"
+    : "";
+
+const rawBase = String(import.meta.env.VITE_API_URL || fallbackProdBase).trim();
 
 export const API_BASE_URL = rawBase.replace(/\/+$/, "");
 
@@ -11,4 +16,3 @@ export const apiUrl = (path = "") => {
     ? `${API_BASE_URL}${cleanPath}`
     : `${API_BASE_URL}/${cleanPath}`;
 };
-
