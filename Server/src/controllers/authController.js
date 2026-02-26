@@ -172,21 +172,25 @@ const clearForgotPasswordOtpSecurityState = (user) => {
 };
 
 // Utility: fetch user by selected channel (email or mobile) for forgot password.
-const findUserByChannelAndIdentifier = async (channel, identifier) => {
+const findUserByChannelAndIdentifier = async (channel, identifier, roleScope = null) => {
+  const roleFilter =
+    Array.isArray(roleScope) && roleScope.length
+      ? { role: { $in: roleScope } }
+      : {};
   if (channel === "email") {
-    return User.findOne({ email: String(identifier || "").trim().toLowerCase() });
+    return User.findOne({ email: String(identifier || "").trim().toLowerCase(), ...roleFilter });
   }
 
   const canonicalInputMobile = toCanonicalIndianMobile(identifier);
   if (!canonicalInputMobile) return null;
 
   // Fast path for canonical data (current app stores 10-digit mobile).
-  const exactMatches = await User.find({ mobile: canonicalInputMobile }).limit(2);
+  const exactMatches = await User.find({ mobile: canonicalInputMobile, ...roleFilter }).limit(2);
   if (exactMatches.length > 1) return "AMBIGUOUS_MOBILE";
   if (exactMatches.length === 1) return exactMatches[0];
 
   // Fallback for legacy formatted numbers (+91/spaces) without scanning every request forever.
-  const usersWithMobile = await User.find({ mobile: { $exists: true, $ne: "" } }).limit(5000);
+  const usersWithMobile = await User.find({ mobile: { $exists: true, $ne: "" }, ...roleFilter }).limit(5000);
   const matchedUsers = usersWithMobile.filter(
     (user) => toCanonicalIndianMobile(user.mobile) === canonicalInputMobile
   );
@@ -402,11 +406,20 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
+    const normalizedLoginPortal = String(loginPortal || "").trim().toLowerCase();
     let user = null;
+    const roleScope =
+      normalizedLoginPortal === "user"
+        ? ["user"]
+        : normalizedLoginPortal === "admin"
+          ? ["super_admin", "village_admin"]
+          : null;
+
+    // Re-resolve user using portal-aware scope to avoid mobile ambiguity across user/admin roles.
     if (resolvedLoginWith === "email") {
-      user = await User.findOne({ email: resolvedIdentifier.toLowerCase() });
+      user = await findUserByChannelAndIdentifier("email", resolvedIdentifier, roleScope);
     } else {
-      user = await findUserByChannelAndIdentifier("mobile", resolvedIdentifier);
+      user = await findUserByChannelAndIdentifier("mobile", resolvedIdentifier, roleScope);
       if (user === "AMBIGUOUS_MOBILE") {
         return res.status(409).json({ message: "Multiple users found with this mobile. Please login with email." });
       }
@@ -417,7 +430,6 @@ const login = async (req, res, next) => {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ message: "Invalid password" });
 
-    const normalizedLoginPortal = String(loginPortal || "").trim().toLowerCase();
     if (normalizedLoginPortal === "user" && user.role !== "user") {
       return res.status(403).json({
         message: "This login page is for users only. Please use the admin login page.",
