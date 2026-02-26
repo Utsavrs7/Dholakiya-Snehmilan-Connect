@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import { setAdminAuth, clearAdminAuth, setActiveAdminRole } from "../../utils/adminAuth";
+import { apiUrl } from "../../utils/api";
 import signInAnimation from "../../../public/Lottie/sign in.json";
 import profileAnimation from "../../../public/Lottie/profile.json";
 import girlProfileAnimation from "../../../public/Lottie/girlProfile.json";
@@ -34,7 +35,6 @@ const preloadDashboardByRole = async (role) => {
 export default function AdminLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const API = import.meta.env.VITE_API_URL;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState("super_admin");
@@ -76,7 +76,7 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/auth/login`, {
+      const res = await fetch(apiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

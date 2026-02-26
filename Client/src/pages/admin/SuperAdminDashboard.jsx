@@ -7,6 +7,7 @@ import { capitalizeWords } from "../../utils/format";
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaLock, FaTimes, FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import { VILLAGE_OPTIONS } from "../../constants/villageOptions";
 import { getResultStatusMeta, getSubmittedByLabel } from "../../utils/resultStatus";
+import { API_BASE_URL } from "../../utils/api";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ export default function SuperAdminDashboard() {
   const [_approvalSettings, setApprovalSettings] = useState({ globalEnabled: true, villageOverrides: [] });
   const [_settingsLoading, setSettingsLoading] = useState(false);
   const [_settingsError, setSettingsError] = useState("");
-  const API_BASE = import.meta.env.VITE_API_URL;
+  const API_BASE = API_BASE_URL;
 
   const renderInlineLoader = (text) => (
     <div className="sa-loader-card rounded-xl border border-[#eddcc7] px-4 py-3 text-sm text-[#7a1f1f]/80">

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSocket } from "../utils/realtime";
 import { getCachedData, setCachedData } from "../utils/apiCache";
+import { apiUrl } from "../utils/api";
 
 const ANNOUNCEMENTS_CACHE_KEY = "announcements_list";
 const ANNOUNCEMENTS_CACHE_TTL_MS = 90 * 1000;
@@ -32,7 +33,7 @@ export default function AnnouncementSection() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/announcements`);
+      const res = await fetch(apiUrl("/api/announcements"));
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to load announcements");
       const nextAnnouncements = Array.isArray(data) ? data : [];

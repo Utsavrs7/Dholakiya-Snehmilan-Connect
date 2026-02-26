@@ -5,6 +5,7 @@ import AdminShell from "../../components/admin/AdminShell";
 import { useAdminData } from "../../context/AdminDataContext";
 import { getAdminTokenFor, getAdminUserFor } from "../../utils/adminAuth";
 import { getResultStatusMeta, getSubmittedByLabel } from "../../utils/resultStatus";
+import { apiUrl } from "../../utils/api";
 
 export default function VillageAdminDashboard() {
   // Use logged-in admin profile for display
@@ -267,7 +268,7 @@ export default function VillageAdminDashboard() {
     setPendingError("");
     try {
       const token = getAdminTokenFor("village_admin");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/users/pending`, {
+      const res = await fetch(apiUrl("/api/auth/users/pending"), {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -287,7 +288,7 @@ export default function VillageAdminDashboard() {
     try {
       const token = getAdminTokenFor("village_admin");
       if (action === "approve") {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/users/${id}/approve`, {
+        const res = await fetch(apiUrl(`/api/auth/users/${id}/approve`), {
           method: "PATCH",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -296,7 +297,7 @@ export default function VillageAdminDashboard() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to approve user");
       } else {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/users/${id}/reject`, {
+        const res = await fetch(apiUrl(`/api/auth/users/${id}/reject`), {
           method: "PATCH",
           headers: { Authorization: `Bearer ${token}` },
         });

@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useState, useEffect } from "react";
 import { getAdminTokenFor, getAdminUserFor, getActiveAdminRole } from "../utils/adminAuth";
+import { API_BASE_URL, apiUrl } from "../utils/api";
 
 const AdminDataContext = createContext(null);
 
@@ -21,7 +22,7 @@ export function AdminDataProvider({ children }) {
   const normalizeResult = (r) => {
     const createdAt = r.createdAt ? new Date(r.createdAt) : null;
     const today = new Date();
-    const apiBase = import.meta.env.VITE_API_URL || "";
+    const apiBase = API_BASE_URL;
     const photo =
       r.photo && r.photo.startsWith("/uploads")
         ? `${apiBase}${r.photo}`
@@ -57,7 +58,7 @@ export function AdminDataProvider({ children }) {
     setError("");
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/results/admin`,
+        apiUrl("/api/results/admin"),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await res.json();
@@ -78,7 +79,7 @@ export function AdminDataProvider({ children }) {
     const token = role ? getAdminTokenFor(role) : null;
     if (!token) throw new Error("Not authenticated");
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/results/admin/${id}`,
+      apiUrl(`/api/results/admin/${id}`),
       {
         method: "PATCH",
         headers: {
