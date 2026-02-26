@@ -309,7 +309,7 @@ export default function Navbar() {
                 onClick={() => handleNavClick(item.id)}
                 className={`
                   relative px-3 py-2 rounded-full transition-all duration-300
-                  group-hover/nav:opacity-40 group-hover/nav:blur-[1px]
+                  group-hover/nav:opacity-70 group-hover/nav:blur-[0.5px]
                   hover:!opacity-100 hover:!blur-0 hover:text-yellow-300
                   after:absolute after:left-0 after:-bottom-1
                   after:h-[2px] after:w-0 after:bg-gradient-to-r after:from-[#ffd166] after:to-[#ffe9a3]
@@ -332,7 +332,7 @@ export default function Navbar() {
             {!user ? (
               <Link
                 to="/login"
-                className="ml-2 rounded-full bg-yellow-400 text-black px-4 py-2 font-semibold transition-all duration-300 hover:bg-yellow-500 group-hover/nav:opacity-40 group-hover/nav:blur-[1px] hover:!opacity-100 hover:!blur-0"
+                className="ml-2 rounded-full bg-yellow-400 text-black px-4 py-2 font-semibold transition-all duration-300 hover:bg-yellow-500"
               >
                 Login
               </Link>
