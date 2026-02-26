@@ -7,12 +7,12 @@ import { capitalizeWords } from "../utils/format";
 import { convertFullNameToGujarati, convertVillageToGujarati } from "../utils/nameConverter";
 import GujaratiInput from "../components/GujaratiInput";
 import { VILLAGE_OPTIONS } from "../constants/villageOptions";
+import { apiUrl } from "../utils/api";
 
 export default function Register() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobileRegex = /^(\+91\d{10}|\d{10})$/;
+  const mobileRegex = /^\d{10}$/;
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
   const [firstName, setFirstName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -78,9 +78,8 @@ export default function Register() {
       return;
     }
 
-    const compactMobile = mobile.trim().replace(/\s+/g, "");
-    if (!mobileRegex.test(compactMobile)) {
-      setFieldErrors({ mobile: "Mobile format: +91XXXXXXXXXX ya 10 digit number." });
+    if (!mobileRegex.test(mobile)) {
+      setFieldErrors({ mobile: "મોબાઇલ નંબર ચોક્કસ 10 અંકનો હોવો જોઈએ." });
       focusField(mobileRef);
       return;
     }
@@ -116,7 +115,7 @@ export default function Register() {
       // Create full name in Gujarati format
       const fullName = gujaratiFullName;
 
-      const res = await fetch(`${API}/api/auth/register`, {
+      const res = await fetch(apiUrl("/api/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -189,7 +188,7 @@ export default function Register() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                Your Name (English me likho, Gujarati aayega)
+                તમારું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
               </label>
               <div className="relative z-50">
                 <GujaratiInput
@@ -207,7 +206,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                Father Name (English me likho, Gujarati aayega)
+                પિતાનું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
               </label>
               <div className="relative z-40">
                 <GujaratiInput
@@ -243,15 +242,20 @@ export default function Register() {
               <label className="text-sm font-medium text-[#7a1f1f]/80">
                 Mobile Number
               </label>
-              <input
-                ref={mobileRef}
-                type="tel"
-                placeholder="+91 9XXXXXXXXX"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                className={`mt-2 w-full rounded-xl border bg-[#fff6e5]/60 px-4 py-3 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40 ${fieldErrors.mobile ? "border-red-500" : "border-[#7a1f1f]/20"
-                  }`}
-              />
+              <div className={`mt-2 flex items-center rounded-xl border bg-[#fff6e5]/60 ${fieldErrors.mobile ? "border-red-500" : "border-[#7a1f1f]/20"} focus-within:border-yellow-400 focus-within:ring-2 focus-within:ring-yellow-300/40`}>
+                <span className="px-3 text-[#7a1f1f]/80 font-medium border-r border-[#7a1f1f]/15">+91</span>
+                <input
+                  ref={mobileRef}
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="9XXXXXXXXX"
+                  value={mobile}
+                  maxLength={10}
+                  onChange={(e) => setMobile(String(e.target.value || "").replace(/\D/g, "").slice(0, 10))}
+                  className="w-full rounded-r-xl bg-transparent px-4 py-3 outline-none"
+                />
+              </div>
               {fieldErrors.mobile && <p className="mt-1 text-xs text-red-600">{fieldErrors.mobile}</p>}
             </div>
 

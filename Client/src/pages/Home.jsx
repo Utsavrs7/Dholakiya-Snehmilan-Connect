@@ -147,9 +147,9 @@ export default function Home() {
       </DeferredSection>
 
       {/* FOOTER */}
-      <DeferredSection minHeightClass="min-h-[20vh]">
+      <Suspense fallback={<div className="w-full min-h-[20vh]" />}>
         <FooterSection />
-      </DeferredSection>
+      </Suspense>
 
     </main>
   );

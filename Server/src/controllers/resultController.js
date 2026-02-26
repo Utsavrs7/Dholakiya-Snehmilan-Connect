@@ -3,17 +3,27 @@ const path = require("path");
 const { createWorker } = require('tesseract.js');
 const { getUploadedImageUrl } = require("../services/imageStorage");
 
+const normalizeBoolean = (value, fallback = false) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1" || normalized === "yes") return true;
+    if (normalized === "false" || normalized === "0" || normalized === "no") return false;
+  }
+  return fallback;
+};
+
 const normalizeGujaratiSurname = (value = "") =>
   String(value).replaceAll("ધોળકયા", "ધોળકિયા");
  
 // Normalize status to lowercase and validate
 const normalizeStatus = (status) => {
   const val = String(status || "").toLowerCase();
-  const allowed = ["pending", "reviewed", "accepted", "rejected"];
+  const allowed = ["pending", "reviewed", "accepted", "rejected", "edited"];
   return allowed.includes(val) ? val : null;
 };
 
-const TRACK_STEPS = ["submitted", "pending", "reviewed", "accepted", "rejected"];
+const TRACK_STEPS = ["submitted", "pending", "reviewed", "accepted", "rejected", "edited"];
 
 const buildResultTimeline = (resultDoc) => {
   const result = resultDoc?.toObject ? resultDoc.toObject() : resultDoc;
@@ -31,8 +41,10 @@ const buildResultTimeline = (resultDoc) => {
   const currentStatus = String(result?.status || "pending").toLowerCase();
   const visibleSteps = currentStatus === "rejected"
     ? ["submitted", "pending", "reviewed", "rejected"]
-    : ["submitted", "pending", "reviewed", "accepted"];
-  const currentStep = currentStatus === "rejected" ? "rejected" : currentStatus;
+    : currentStatus === "edited"
+      ? ["submitted", "pending", "reviewed", "rejected", "edited"]
+      : ["submitted", "pending", "reviewed", "accepted"];
+  const currentStep = currentStatus;
   const activeIndex = Math.max(0, visibleSteps.indexOf(currentStep));
 
   return {
@@ -41,6 +53,7 @@ const buildResultTimeline = (resultDoc) => {
     standard: result?.standard || "",
     status: currentStatus,
     reject_note: result?.reject_note || "",
+    allow_edit_resubmit: Boolean(result?.allow_edit_resubmit),
     submitted_by_role: result?.submitted_by_role || "user",
     submitted_by_name: result?.submitted_by_name || "",
     createdAt: result?.createdAt || null,
@@ -294,6 +307,7 @@ const updateAdminResult = async (req, res, next) => {
       "result_details",
       "status",
       "reject_note",
+      "allow_edit_resubmit",
     ];
 
     // Super admin can also change village if needed
@@ -316,6 +330,9 @@ const updateAdminResult = async (req, res, next) => {
         if (normalized !== "rejected" && req.body.reject_note === undefined) {
           result.reject_note = "";
         }
+        if (normalized !== "rejected") {
+          result.allow_edit_resubmit = false;
+        }
         continue;
       }
       if (req.body[key] !== undefined) {
@@ -323,6 +340,8 @@ const updateAdminResult = async (req, res, next) => {
           ? normalizeGujaratiSurname(req.body[key])
           : key === "reject_note"
           ? String(req.body[key] || "").trim()
+          : key === "allow_edit_resubmit"
+          ? normalizeBoolean(req.body[key], false)
           : req.body[key];
       }
     }
@@ -346,6 +365,67 @@ const updateAdminResult = async (req, res, next) => {
         }
       }
     }
+
+    const saved = await result.save();
+    res.json(saved);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const resubmitMyResult = async (req, res, next) => {
+  try {
+    const result = await Result.findOne({
+      _id: req.params.id,
+      submittedBy: req.user.id,
+    });
+    if (!result) return res.status(404).json({ message: "Result not found" });
+
+    if (String(result.status || "").toLowerCase() !== "rejected") {
+      return res.status(400).json({ message: "Only rejected results can be edited and resubmitted." });
+    }
+    if (!result.allow_edit_resubmit) {
+      return res.status(403).json({ message: "Edit and resubmit is not allowed for this rejected result." });
+    }
+
+    let {
+      full_name,
+      mobile,
+      email,
+      standard,
+      semester,
+      percentage,
+      medium,
+      village,
+      result_details,
+    } = req.body;
+
+    const nextPhoto = await getUploadedImageUrl(req.file, "snehmilan-connect/results");
+    const finalPhoto = nextPhoto || result.photo;
+    if (!full_name || !mobile || !email || !standard || !percentage || !medium || !village || !finalPhoto) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    result.full_name = normalizeGujaratiSurname(full_name);
+    result.mobile = mobile;
+    result.email = email;
+    result.standard = standard;
+    result.semester = semester || "";
+    result.percentage = percentage;
+    result.medium = medium;
+    result.village = village;
+    result.result_details = result_details || "";
+    result.photo = finalPhoto;
+    result.status = "edited";
+    result.reject_note = "";
+    result.allow_edit_resubmit = false;
+
+    if (!Array.isArray(result.status_history)) result.status_history = [];
+    result.status_history.push({
+      status: "edited",
+      changedAt: new Date(),
+      note: "",
+    });
 
     const saved = await result.save();
     res.json(saved);
@@ -411,6 +491,7 @@ module.exports = {
   submitResult,
   getMyResults,
   getMyResultTracking,
+  resubmitMyResult,
   getAdminResults,
   getAdminResultById,
   updateAdminResult,

@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 export default function FooterSection() {
+  const year = new Date().getFullYear();
+
   return (
     <footer className="relative w-full bg-[#6b1d1d] text-white overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -17,7 +19,6 @@ export default function FooterSection() {
       <div className="relative max-w-7xl mx-auto px-6 pt-10 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div>
-            
             <Link to="/" className="inline-flex">
               <img
                 src="Logo/NavLogo.png"
@@ -25,9 +26,9 @@ export default function FooterSection() {
                 className="h-14 w-auto object-contain mb-4"
               />
             </Link>
-            
+
             <p className="text-sm text-white/80 leading-relaxed max-w-sm">
-              Dholakiya Parivar — ek parivar, ek parampara. Amara sambandho,
+              Dholakiya Parivar - ek parivar, ek parampara. Amara sambandho,
               sanskar ane seva no safar satat vikas pame.
             </p>
           </div>
@@ -89,7 +90,7 @@ export default function FooterSection() {
         </div>
 
         <div className="mt-6 pt-3 border-t border-white/20 text-sm text-white/70 flex flex-col md:flex-row justify-between gap-2">
-          <span>© 2026 Dholakiya Parivar. All rights reserved.</span>
+          <span>� {year} Dholakiya Parivar. All rights reserved.</span>
           <span>Design by Leo Infotech</span>
         </div>
       </div>

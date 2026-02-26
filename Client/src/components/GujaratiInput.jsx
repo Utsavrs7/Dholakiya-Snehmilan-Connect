@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { apiUrl } from "../utils/api";
 
 export default function GujaratiInput({
     value,
@@ -16,7 +17,6 @@ export default function GujaratiInput({
     const fallbackRef = useRef(null);
     const activeInputRef = inputRef || fallbackRef;
     const suggestionsRef = useRef(null);
-    const API = import.meta.env.VITE_API_URL;
     const cleanedSuggestions = suggestions
         .map((s) => String(s || '').replace(/\s+/g, ' ').trim())
         .filter(Boolean);
@@ -58,7 +58,7 @@ export default function GujaratiInput({
 
         try {
             const response = await fetch(
-                `${API}/api/proxy/input-tools?text=${encodeURIComponent(text)}&itc=gu-t-i0-und`
+                apiUrl(`/api/proxy/input-tools?text=${encodeURIComponent(text)}&itc=gu-t-i0-und`)
             );
             if (response.ok) {
                 const data = await response.json();
@@ -89,12 +89,12 @@ export default function GujaratiInput({
             const words = newVal.split(/\s+/);
             const lastWord = words[words.length - 1];
 
-            if (lastWord && /^[a-zA-Z]+$/.test(lastWord)) {
+            if (lastWord && lastWord.length >= 2 && /^[a-zA-Z]+$/.test(lastWord)) {
                 fetchSuggestions(lastWord);
             } else {
                 setShowSuggestions(false);
             }
-        }, 300);
+        }, 120);
     };
 
     const hasEnglishTail = (textValue) => {

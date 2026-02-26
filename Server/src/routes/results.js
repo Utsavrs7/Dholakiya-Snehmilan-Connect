@@ -1,11 +1,11 @@
 const router = require("express").Router();
-const multer = require("multer");
-const path = require("path");
 const { authRequired, roleRequired } = require("../middleware/auth");
+const upload = require("../middleware/upload");
 const {
   submitResult,
   getMyResults,
   getMyResultTracking,
+  resubmitMyResult,
   getAdminResults,
   getAdminResultById,
   updateAdminResult,
@@ -14,23 +14,11 @@ const {
   extractDataFromPhoto,
 } = require("../controllers/resultController");
 
-// Multer config for photo upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../../uploads"));
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ storage });
-
 // Result submission requires login
 router.post("/", authRequired, upload.single("photo"), submitResult);
 router.get("/me", authRequired, getMyResults);
 router.get("/me/:id/tracking", authRequired, getMyResultTracking);
+router.patch("/me/:id/resubmit", authRequired, upload.single("photo"), resubmitMyResult);
 // Admin results access (super_admin: all, village_admin: own village)
 router.get("/admin", authRequired, roleRequired("super_admin", "village_admin"), getAdminResults);
 // Super admin summary (counts per village)

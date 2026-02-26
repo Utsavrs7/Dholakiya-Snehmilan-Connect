@@ -13,13 +13,14 @@ const resultSchema = new mongoose.Schema(
     village: { type: String, required: true },
     result_details: { type: String, default: "" },
     photo: { type: String, required: true },
-    status: { type: String, enum: ["pending", "reviewed", "accepted", "rejected"], default: "pending" },
+    status: { type: String, enum: ["pending", "reviewed", "accepted", "rejected", "edited"], default: "pending" },
     reject_note: { type: String, default: "", trim: true },
+    allow_edit_resubmit: { type: Boolean, default: false },
     status_history: [
       {
         status: {
           type: String,
-          enum: ["submitted", "pending", "reviewed", "accepted", "rejected"],
+          enum: ["submitted", "pending", "reviewed", "accepted", "rejected", "edited"],
           required: true,
         },
         note: { type: String, default: "", trim: true },

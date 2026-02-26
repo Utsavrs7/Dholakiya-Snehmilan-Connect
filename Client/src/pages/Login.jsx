@@ -3,10 +3,11 @@ import Lottie from "lottie-react";
 import signInAnimation from "../../public/Lottie/Login Leady.json";
 import { useRef, useState } from "react";
 import { setAuth } from "../utils/auth";
+import { apiUrl } from "../utils/api";
 
 export default function Login() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobileRegex = /^(\+91\d{10}|\d{10})$/;
+  const mobileRegex = /^\d{10}$/;
   const navigate = useNavigate();
   const location = useLocation();
   const [loginWith, setLoginWith] = useState("mobile");
@@ -18,7 +19,6 @@ export default function Login() {
   const [remember, setRemember] = useState(true);
   const [registrationMessage] = useState(location.state?.registrationMessage || "");
   const [logoutMessage] = useState(location.state?.logoutMessage || "");
-  const API = import.meta.env.VITE_API_URL;
   const identifierRef = useRef(null);
   const passwordRef = useRef(null);
   const focusField = (ref) => {
@@ -53,9 +53,8 @@ export default function Login() {
     }
 
     if (loginWith === "mobile") {
-      const compactMobile = identifier.trim().replace(/\s+/g, "");
-      if (!mobileRegex.test(compactMobile)) {
-        setFieldErrors({ identifier: "Mobile format: +91XXXXXXXXXX ya 10 digit number." });
+      if (!mobileRegex.test(identifier)) {
+        setFieldErrors({ identifier: "મોબાઇલ નંબર ચોક્કસ 10 અંકનો હોવો જોઈએ." });
         focusField(identifierRef);
         return;
       }
@@ -63,11 +62,12 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/auth/login`, {
+      const submitIdentifier = loginWith === "mobile" ? identifier.replace(/\D/g, "").slice(0, 10) : identifier.trim();
+      const res = await fetch(apiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ loginWith, identifier, password, remember, loginPortal: "user" }),
+        body: JSON.stringify({ loginWith, identifier: submitIdentifier, password, remember, loginPortal: "user" }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
@@ -172,15 +172,32 @@ export default function Login() {
               <label className="text-sm font-medium text-[#7a1f1f]/80">
                 {loginWith === "mobile" ? "Mobile Number" : "Email"}
               </label>
-              <input
-                ref={identifierRef}
-                type={loginWith === "mobile" ? "tel" : "email"}
-                placeholder={loginWith === "mobile" ? "+91 9XXXXXXXXX" : "you@example.com"}
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                className={`mt-2 w-full rounded-xl border bg-[#fff6e5]/60 px-4 py-3 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40 ${fieldErrors.identifier ? "border-red-500" : "border-[#7a1f1f]/20"
-                  }`}
-              />
+              {loginWith === "mobile" ? (
+                <div className={`mt-2 flex items-center rounded-xl border bg-[#fff6e5]/60 ${fieldErrors.identifier ? "border-red-500" : "border-[#7a1f1f]/20"} focus-within:border-yellow-400 focus-within:ring-2 focus-within:ring-yellow-300/40`}>
+                  <span className="px-3 text-[#7a1f1f]/80 font-medium border-r border-[#7a1f1f]/15">+91</span>
+                  <input
+                    ref={identifierRef}
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="9XXXXXXXXX"
+                    value={identifier}
+                    maxLength={10}
+                    onChange={(e) => setIdentifier(String(e.target.value || "").replace(/\D/g, "").slice(0, 10))}
+                    className="w-full rounded-r-xl bg-transparent px-4 py-3 outline-none"
+                  />
+                </div>
+              ) : (
+                <input
+                  ref={identifierRef}
+                  type="email"
+                  placeholder="you@example.com"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  className={`mt-2 w-full rounded-xl border bg-[#fff6e5]/60 px-4 py-3 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40 ${fieldErrors.identifier ? "border-red-500" : "border-[#7a1f1f]/20"
+                    }`}
+                />
+              )}
               {fieldErrors.identifier && <p className="mt-1 text-xs text-red-600">{fieldErrors.identifier}</p>}
             </div>
 

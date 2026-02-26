@@ -19,6 +19,11 @@ const STATUS_META = {
     label: "Rejected",
     badgeClass: "result-status-rejected bg-rose-50 text-rose-700 border-rose-200",
   },
+  edited: {
+    key: "edited",
+    label: "Edited",
+    badgeClass: "result-status-edited bg-violet-50 text-violet-700 border-violet-200",
+  },
 };
 
 export const getResultStatusMeta = (status) => {

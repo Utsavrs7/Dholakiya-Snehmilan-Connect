@@ -11,6 +11,7 @@ import GujaratiInput from "./GujaratiInput";
 import CustomSelect from "./CustomSelect";
 import { getResultStatusMeta, getSubmittedByLabel } from "../utils/resultStatus";
 import { VILLAGE_OPTIONS } from "../constants/villageOptions";
+import { apiUrl } from "../utils/api";
 
 const INITIAL_FORM_DATA = {
   studentName: "",
@@ -94,6 +95,7 @@ const STEP_LABELS = {
   reviewed: "Reviewed",
   accepted: "Accepted",
   rejected: "Rejected",
+  edited: "Edited",
 };
 const STEP_ICONS = {
   submitted: FaClipboardCheck,
@@ -108,6 +110,23 @@ const STEP_COLORS = {
   reviewed: "#2563eb",
   accepted: "#16a34a",
   rejected: "#dc2626",
+  edited: "#7c3aed",
+};
+
+const parseStudentAndFatherFromFullName = (fullName = "") => {
+  const cleaned = String(fullName || "").trim();
+  if (!cleaned) return { studentName: "", fatherName: "" };
+  const surnamePrefix = "ધોળકિયા";
+  const withoutSurname = cleaned.startsWith(surnamePrefix)
+    ? cleaned.slice(surnamePrefix.length).trim()
+    : cleaned;
+  const parts = withoutSurname.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { studentName: "", fatherName: "" };
+  if (parts.length === 1) return { studentName: parts[0], fatherName: "" };
+  return {
+    studentName: parts.slice(0, -1).join(" "),
+    fatherName: parts[parts.length - 1],
+  };
 };
 
 const getResultTimeMs = (item) => {
@@ -118,7 +137,7 @@ const getResultTimeMs = (item) => {
   return 0;
 };
 
-const validateForm = (data, requiresSemester) => {
+const validateForm = (data, requiresSemester, allowExistingPhoto = false) => {
   const missing = [];
   if (!data.studentName.trim()) missing.push("Student Name");
   if (!data.fatherName.trim()) missing.push("Father Name");
@@ -133,7 +152,7 @@ const validateForm = (data, requiresSemester) => {
   if (!data.medium) missing.push("Medium");
   if (!data.village.trim()) missing.push("Village");
   if (data.village === "other" && !data.villageOther.trim()) missing.push("Custom Village");
-  if (!data.photo) missing.push("Photo");
+  if (!allowExistingPhoto && !data.photo) missing.push("Photo");
 
   if (missing.length) return missing;
 
@@ -167,7 +186,6 @@ const validateForm = (data, requiresSemester) => {
 
 export default function SubmitResult({ adminModeRole = "" }) {
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
   const isAdminMode = adminModeRole === "village_admin" || adminModeRole === "super_admin";
   const adminProfile = isAdminMode ? getAdminUserFor(adminModeRole) : null;
   const isVillageAdminMode = adminModeRole === "village_admin";
@@ -192,6 +210,8 @@ export default function SubmitResult({ adminModeRole = "" }) {
   const [myResults, setMyResults] = useState([]);
   const [selectedResultId, setSelectedResultId] = useState("");
   const [tracking, setTracking] = useState(null);
+  const [resubmittingResultId, setResubmittingResultId] = useState("");
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState("");
   const [forceFormMode, setForceFormMode] = useState(false);
   const [hasCheckedExistingSubmission, setHasCheckedExistingSubmission] = useState(isAdminMode);
   const forceFormModeRef = useRef(false);
@@ -275,7 +295,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
       return;
     }
 
-  }, [API, navigate, adminModeRole]);
+  }, [navigate, adminModeRole, isAdminMode]);
 
   useEffect(() => {
     if (!isVillageAdminMode) return;
@@ -297,7 +317,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
     if (!token) return;
     const refreshMe = async () => {
       try {
-        const res = await fetch(`${API}/api/auth/me`, {
+        const res = await fetch(apiUrl("/api/auth/me"), {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
@@ -320,7 +340,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
     refreshMe();
     const id = setInterval(refreshMe, 12000);
     return () => clearInterval(id);
-  }, [API, isAdminMode]);
+  }, [isAdminMode, navigate]);
 
   useEffect(() => {
     const checkExistingSubmission = async () => {
@@ -344,12 +364,12 @@ export default function SubmitResult({ adminModeRole = "" }) {
     };
 
     checkExistingSubmission();
-  }, [API, adminModeRole, isAdminMode]);
+  }, [adminModeRole, isAdminMode]);
 
   const fetchMyResults = async (tokenArg) => {
     const token = tokenArg || getAuthContext().token;
     if (!token) return;
-    const res = await fetch(`${API}/api/results/me`, {
+    const res = await fetch(apiUrl("/api/results/me"), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return;
@@ -373,7 +393,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
     if (!resultId) return;
     const token = tokenArg || getAuthContext().token;
     if (!token) return;
-    const res = await fetch(`${API}/api/results/me/${resultId}/tracking`, {
+    const res = await fetch(apiUrl(`/api/results/me/${resultId}/tracking`), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return;
@@ -387,7 +407,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
     fetchMyResults(token);
     const id = setInterval(() => fetchMyResults(token), 10000);
     return () => clearInterval(id);
-  }, [API, forceFormMode, selectedResultId, adminModeRole]);
+  }, [forceFormMode, selectedResultId, adminModeRole]);
 
   useEffect(() => {
     const { token } = getAuthContext();
@@ -395,7 +415,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
     fetchTracking(selectedResultId, token);
     const id = setInterval(() => fetchTracking(selectedResultId, token), 8000);
     return () => clearInterval(id);
-  }, [API, selectedResultId, adminModeRole]);
+  }, [selectedResultId, adminModeRole]);
 
   useEffect(() => {
     if (!tracking?.resultId) return;
@@ -406,6 +426,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
               ...item,
               status: tracking.status || item.status,
               reject_note: tracking.reject_note || "",
+              allow_edit_resubmit: Boolean(tracking.allow_edit_resubmit),
             }
           : item
       )
@@ -442,7 +463,15 @@ export default function SubmitResult({ adminModeRole = "" }) {
         return { ...prev, [name]: value.replace(/\D/g, "").slice(0, 10) };
       }
       if (name === "totalMarks" || name === "obtainMarks") {
-        return { ...prev, [name]: value.replace(/[^0-9.]/g, "") };
+        const sanitized = value.replace(/[^0-9.]/g, "");
+        if (name === "obtainMarks") {
+          const total = Number.parseFloat(prev.totalMarks);
+          const obtain = Number.parseFloat(sanitized);
+          if (!Number.isNaN(total) && total > 0 && !Number.isNaN(obtain) && obtain > total) {
+            return { ...prev, [name]: prev.totalMarks };
+          }
+        }
+        return { ...prev, [name]: sanitized };
       }
       return { ...prev, [name]: value };
     });
@@ -452,12 +481,45 @@ export default function SubmitResult({ adminModeRole = "" }) {
     }
   };
 
+  const startEditRejectedResult = () => {
+    const selected = myResults.find((item) => String(item._id) === String(selectedResultId));
+    if (!selected) return;
+    const parsed = parseStudentAndFatherFromFullName(selected.full_name);
+    const matchedStandard = STANDARD_OPTIONS.includes(selected.standard) ? selected.standard : "Other";
+    const semesterValue = selected.semester || "";
+    const villageValue = VILLAGE_OPTIONS.includes(selected.village) ? selected.village : "other";
+    setFormData({
+      ...INITIAL_FORM_DATA,
+      studentName: parsed.studentName,
+      fatherName: parsed.fatherName,
+      mobile: selected.mobile || "",
+      email: selected.email || "",
+      standard: matchedStandard,
+      standardOther: matchedStandard === "Other" ? (selected.standard || "") : "",
+      semester: semesterValue,
+      totalMarks: "",
+      obtainMarks: "",
+      percentage: String(selected.percentage || ""),
+      medium: selected.medium || "",
+      village: villageValue,
+      villageOther: villageValue === "other" ? (selected.village || "") : "",
+      result_details: selected.result_details || "",
+      photo: null,
+    });
+    setExistingPhotoUrl(selected.photo || "");
+    setPreview(selected.photo || null);
+    setResubmittingResultId(String(selected._id));
+    setForceFormMode(true);
+    setShowSuccess(false);
+    setError([]);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError([]);
     setShowSuccess(false);
 
-    const validationErrors = validateForm(formData, showSemester);
+    const validationErrors = validateForm(formData, showSemester, Boolean(existingPhotoUrl));
     if (validationErrors.length > 0) {
       setError(validationErrors);
       return;
@@ -505,8 +567,14 @@ export default function SubmitResult({ adminModeRole = "" }) {
       body.append("result_details", formData.result_details || "");
       if (formData.photo) body.append("photo", formData.photo);
 
-      const res = await fetch(`${API}/api/results`, {
-        method: "POST",
+      const isResubmitFlow = Boolean(resubmittingResultId);
+      const endpoint = isResubmitFlow
+        ? apiUrl(`/api/results/me/${resubmittingResultId}/resubmit`)
+        : apiUrl("/api/results");
+      const method = isResubmitFlow ? "PATCH" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { Authorization: `Bearer ${token}` },
         body,
       });
@@ -518,6 +586,8 @@ export default function SubmitResult({ adminModeRole = "" }) {
         sessionStorage.setItem("result_submitted", "true");
       }
       setForceFormMode(false);
+      setResubmittingResultId("");
+      setExistingPhotoUrl("");
       setShowSuccess(true);
       fetchMyResults(token);
       setFormData(INITIAL_FORM_DATA);
@@ -544,6 +614,8 @@ export default function SubmitResult({ adminModeRole = "" }) {
       sessionStorage.removeItem("result_submitted");
     }
     setForceFormMode(true);
+    setResubmittingResultId("");
+    setExistingPhotoUrl("");
     setShowSuccess(false);
   };
 
@@ -769,9 +841,20 @@ export default function SubmitResult({ adminModeRole = "" }) {
                 </div>
               </div>
               {tracking.status === "rejected" && tracking.reject_note && (
-                <p className="mt-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
-                  નામંજૂરી નોંધ: {tracking.reject_note}
-                </p>
+                <div className="mt-4 space-y-3">
+                  <p className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
+                    નામંજૂરી નોંધ: {tracking.reject_note}
+                  </p>
+                  {tracking.allow_edit_resubmit && !isAdminMode && (
+                    <button
+                      type="button"
+                      onClick={startEditRejectedResult}
+                      className="rounded-full bg-[#7a1f1f] text-white px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition"
+                    >
+                      Edit and Resubmit
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -886,7 +969,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
         {/* Student Name and Father Name */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block font-bold text-[#7a1f1f]/80 mb-2 text-sm tracking-wide uppercase">Student Name (English)</label>
+            <label className="block font-bold text-[#7a1f1f]/80 mb-2 text-sm tracking-wide uppercase">Student Name (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન આવશે)</label>
             <GujaratiInput
               name="studentName"
               value={formData.studentName}
@@ -899,7 +982,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
           </div>
 
           <div>
-            <label className="block font-bold text-[#7a1f1f]/80 mb-2 text-sm tracking-wide uppercase">Father Name (English)</label>
+            <label className="block font-bold text-[#7a1f1f]/80 mb-2 text-sm tracking-wide uppercase">Father Name (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન આવશે)</label>
             <GujaratiInput
               name="fatherName"
               value={formData.fatherName}
@@ -932,16 +1015,21 @@ export default function SubmitResult({ adminModeRole = "" }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block font-bold text-[#7a1f1f]/80 mb-2 text-sm tracking-wide uppercase">Mobile Number</label>
-            <input
-              type="text"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleChange}
-              placeholder="10-digit mobile number"
-              className={FIELD_CLASS}
-              required
-              maxLength={10}
-            />
+            <div className="flex items-center rounded-lg border border-[#7a1f1f]/30 bg-white/50 focus-within:bg-white focus-within:border-[#7a1f1f] focus-within:ring-1 focus-within:ring-[#7a1f1f]">
+              <span className="px-3 text-[#7a1f1f]/80 font-medium border-r border-[#7a1f1f]/20">+91</span>
+              <input
+                type="text"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleChange}
+                placeholder="10-digit mobile number"
+                className="w-full p-3 rounded-r-lg bg-transparent focus:outline-none text-[#7a1f1f]"
+                required
+                maxLength={10}
+                inputMode="numeric"
+                pattern="[0-9]*"
+              />
+            </div>
           </div>
 
           <div>
@@ -1127,10 +1215,15 @@ export default function SubmitResult({ adminModeRole = "" }) {
             accept="image/*"
             onChange={handleChange}
             className={FILE_CLASS}
-            required
+            required={!existingPhotoUrl}
           />
           {preview && (
             <img src={preview} alt="Preview" className="mt-2 max-w-xs rounded-lg shadow-md" />
+          )}
+          {!formData.photo && existingPhotoUrl && (
+            <p className="mt-2 text-xs text-[#7a1f1f]/70">
+              Existing photo rahegi. Nayi photo upload karoge to replace ho jayegi.
+            </p>
           )}
         </div>
 
@@ -1146,4 +1239,5 @@ export default function SubmitResult({ adminModeRole = "" }) {
     </div>
   );
 }
+
 

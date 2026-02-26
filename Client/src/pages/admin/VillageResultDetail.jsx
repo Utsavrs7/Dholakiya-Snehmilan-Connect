@@ -17,6 +17,7 @@ export default function VillageResultDetail() {
   const [formData, setFormData] = useState(result || null);
   const [isEditing, setIsEditing] = useState(false);
   const [showRejectNote, setShowRejectNote] = useState(false);
+  const [allowEditResubmit, setAllowEditResubmit] = useState(true);
   const rejectNoteRef = useRef(null);
 
   const markReviewedIfPending = async () => {
@@ -37,6 +38,7 @@ export default function VillageResultDetail() {
   const handleStatusChange = async (status) => {
     if (!formData) return;
     if (status === "rejected") {
+      setAllowEditResubmit(true);
       setShowRejectNote(true);
       return;
     }
@@ -62,9 +64,11 @@ export default function VillageResultDetail() {
     await updateResult(formData.id, {
       status: "rejected",
       reject_note: formData.reject_note || "",
+      allow_edit_resubmit: allowEditResubmit,
     });
-    setFormData((prev) => ({ ...prev, status: "rejected" }));
+    setFormData((prev) => ({ ...prev, status: "rejected", allow_edit_resubmit: allowEditResubmit }));
     setShowRejectNote(false);
+    setAllowEditResubmit(true);
     setTimeout(goBack, 150);
   };
 
@@ -400,6 +404,14 @@ export default function VillageResultDetail() {
                 <span>Tip: short, specific reason likho.</span>
                 <span>{(formData.reject_note || "").length}/300</span>
               </div>
+              <label className="flex items-center gap-2 text-sm text-[#7a1f1f]">
+                <input
+                  type="checkbox"
+                  checked={allowEditResubmit}
+                  onChange={(e) => setAllowEditResubmit(e.target.checked)}
+                />
+                Reject note ke sath student ko Edit and Resubmit button bhejna hai
+              </label>
               <div className="flex gap-2">
                 <button
                   onClick={handleRejectWithNote}
