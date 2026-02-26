@@ -1,4 +1,5 @@
 const Result = require("../models/Result");
+const path = require("path");
 const { createWorker } = require('tesseract.js');
 const { getUploadedImageUrl } = require("../services/imageStorage");
 
@@ -73,7 +74,7 @@ const extractDataFromPhoto = async (req, res, next) => {
     const photo = req.file;
     if (!photo) return res.status(400).json({ message: "Photo required" });
 
-    const photoPath = photo.path;
+    const photoPath = path.join(__dirname, "../../uploads", photo.filename);
     const worker = createWorker();
     await worker.load();
     await worker.loadLanguage('eng');

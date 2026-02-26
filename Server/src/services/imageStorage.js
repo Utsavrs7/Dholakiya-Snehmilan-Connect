@@ -1,7 +1,6 @@
-const getUploadedImageUrl = async (file, folder = "snehmilan-connect") => {
+const getUploadedImageUrl = async (file) => {
   if (!file) return "";
-  const uploadedUrl = String(file.path || "").trim();
-  return uploadedUrl;
+  return `/uploads/${file.filename}`;
 };
 
 module.exports = { getUploadedImageUrl };
