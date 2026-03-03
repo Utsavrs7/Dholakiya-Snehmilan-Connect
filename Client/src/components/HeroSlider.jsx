@@ -72,22 +72,12 @@ export default function HeroSlider() {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#7a1f1f]/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
       {/* Header */}
-      <div className="relative max-w-7xl mx-auto px-6 mb-10 flex items-end justify-between">
+      <div className="relative max-w-7xl mx-auto px-6 mb-10">
         <div>
           <h2 className="text-4xl md:text-5xl font-serif text-[#7a1f1f] tracking-tight">
             Our <span className="italic text-yellow-600">Highlights</span>
           </h2>
           <div className="h-1 w-24 bg-gradient-to-r from-[#7a1f1f] to-yellow-500 mt-2 rounded-full" />
-        </div>
-
-        {/* Custom Navigation Buttons (Desktop) */}
-        <div className="hidden md:flex gap-3">
-          <button ref={prevRef} className="nav-btn group">
-            <ChevronLeft className="w-6 h-6 text-[#7a1f1f] group-hover:scale-110 transition-transform" />
-          </button>
-          <button ref={nextRef} className="nav-btn group">
-            <ChevronRight className="w-6 h-6 text-[#7a1f1f] group-hover:scale-110 transition-transform" />
-          </button>
         </div>
       </div>
 
@@ -168,28 +158,44 @@ export default function HeroSlider() {
 
 
         </Swiper>
+
+        <div className="hero-nav-wrap mt-8 flex items-center justify-center gap-4">
+          <button ref={prevRef} className="nav-btn group" aria-label="Previous slide">
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[#7a1f1f] group-hover:scale-110 transition-transform" />
+          </button>
+          <button ref={nextRef} className="nav-btn group" aria-label="Next slide">
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#7a1f1f] group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
       </div>
 
       <style>{`
         /* Navigation Buttons */
         .nav-btn {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.5);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(122, 31, 31, 0.1);
+          width: 52px;
+          height: 52px;
+          border-radius: 999px;
+          background: linear-gradient(145deg, #fffef9 0%, #fff4dc 100%);
+          border: 1px solid rgba(122, 31, 31, 0.16);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+          box-shadow: 0 10px 24px rgba(122, 31, 31, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
         .nav-btn:hover {
-          background: #fff;
+          transform: translateY(-2px);
           border-color: #7a1f1f;
-          box-shadow: 0 6px 16px rgba(122, 31, 31, 0.15);
+          box-shadow: 0 14px 30px rgba(122, 31, 31, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        .nav-btn:active {
+          transform: translateY(0);
+        }
+        .nav-btn.swiper-button-disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          box-shadow: 0 6px 14px rgba(122, 31, 31, 0.12);
         }
 
         /* Swiper Slide Styling */
