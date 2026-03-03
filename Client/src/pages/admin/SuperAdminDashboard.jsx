@@ -1209,18 +1209,18 @@ export default function SuperAdminDashboard() {
             <span className="village-page-meta">
               Page {summaryPage} of {summaryTotalPages}
             </span>
-            <div className="village-page-actions flex flex-wrap items-center">
+            <div className="village-page-actions flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setSummaryPage((p) => Math.max(1, p - 1))}
                 disabled={summaryPage === 1}
-                className="village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
+                className="village-action-btn px-4 py-1.5 rounded-full border border-[#ead8c4] bg-white text-[#7a1f1f] shadow-sm hover:bg-[#fff6e5] hover:border-[#d9c3ab] disabled:opacity-40 disabled:hover:bg-white transition"
               >
                 Prev
               </button>
               <button
                 onClick={() => setSummaryPage((p) => Math.min(summaryTotalPages, p + 1))}
                 disabled={summaryPage === summaryTotalPages}
-                className="village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
+                className="village-action-btn px-4 py-1.5 rounded-full border border-[#7a1f1f] bg-[#7a1f1f] text-white shadow-sm hover:bg-[#662020] disabled:opacity-40 disabled:hover:bg-[#7a1f1f] transition"
               >
                 Next
               </button>
