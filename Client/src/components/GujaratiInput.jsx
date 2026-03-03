@@ -157,11 +157,37 @@ export default function GujaratiInput({
         }
     };
 
-    const handleBlur = () => {
+    const handleBlur = async () => {
         // If user leaves field with English tail, auto-apply first Gujarati suggestion.
-        if (showSuggestions && cleanedSuggestions.length > 0 && hasEnglishTail(value)) {
-            handleSelection(cleanedSuggestions[0]);
-            return;
+        if (hasEnglishTail(value)) {
+            if (cleanedSuggestions.length > 0) {
+                handleSelection(cleanedSuggestions[0], { refocus: false });
+                return;
+            }
+            const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+            const lastWord = words[words.length - 1] || '';
+            if (lastWord.length >= 2 && /^[a-zA-Z]+$/.test(lastWord)) {
+                try {
+                    const response = await fetch(
+                        apiUrl(`/api/proxy/input-tools?text=${encodeURIComponent(lastWord)}&itc=gu-t-i0-und`)
+                    );
+                    if (response.ok) {
+                        const data = await response.json();
+                        const fetchedSuggestions =
+                            data?.[0] === 'SUCCESS' && Array.isArray(data?.[1]?.[0]?.[1])
+                                ? data[1][0][1]
+                                    .map((s) => String(s || '').replace(/\s+/g, ' ').trim())
+                                    .filter(Boolean)
+                                : [];
+                        if (fetchedSuggestions.length > 0) {
+                            handleSelection(fetchedSuggestions[0], { refocus: false });
+                            return;
+                        }
+                    }
+                } catch {
+                    // Keep field as-is if suggestion fetch fails during blur.
+                }
+            }
         }
         setShowSuggestions(false);
     };
