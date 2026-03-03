@@ -103,7 +103,8 @@ export default function GujaratiInput({
         return /^[a-zA-Z]+$/.test(words[words.length - 1]);
     };
 
-    const handleSelection = (suggestion) => {
+    const handleSelection = (suggestion, options = {}) => {
+        const { refocus = true } = options;
         const words = value.trim().split(/\s+/).filter(Boolean);
         words.pop(); // Remove the partial English word
         words.push(String(suggestion || '').replace(/\s+/g, ' ').trim()); // Add sanitized Gujarati suggestion
@@ -122,7 +123,7 @@ export default function GujaratiInput({
 
         setShowSuggestions(false);
         setSuggestions([]);
-        if (activeInputRef.current) {
+        if (refocus && activeInputRef.current) {
             activeInputRef.current.focus();
         }
     };
@@ -136,10 +137,15 @@ export default function GujaratiInput({
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             setActiveIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
-        } else if (e.key === 'Enter' || e.key === 'Tab') {
+        } else if (e.key === 'Enter') {
             if (showSuggestions) {
                 e.preventDefault();
                 handleSelection(cleanedSuggestions[activeIndex] || cleanedSuggestions[0]);
+            }
+        } else if (e.key === 'Tab') {
+            if (showSuggestions) {
+                // Accept suggestion and allow natural tab navigation to next field.
+                handleSelection(cleanedSuggestions[activeIndex] || cleanedSuggestions[0], { refocus: false });
             }
         } else if (e.key === ' ') {
             if (showSuggestions && cleanedSuggestions.length > 0) {

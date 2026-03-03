@@ -1518,9 +1518,15 @@ const buildExportPayload = (filters = exportFilters) => ({
         .admin-theme-dark .quick-page-root .quick-selected-title {
           color: #f3f7ff !important;
         }
+        .admin-theme-dark .quick-page-root .quick-selected-label {
+          color: #ffffff !important;
+        }
         .admin-theme-dark .quick-page-root .quick-selected-subtitle,
         .admin-theme-dark .quick-page-root .quick-suggested-note {
           color: #c5d4f3 !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-empty-state {
+          color: #f8fafc !important;
         }
         .admin-theme-dark .quick-page-root .quick-content-chip {
           background: #121c32 !important;
@@ -1986,7 +1992,7 @@ const buildExportPayload = (filters = exportFilters) => ({
           ref={actionDetailRef}
           className={`quick-selected mt-6 rounded-2xl border bg-white p-5 md:p-6 ${selectedStyle.active}`}
         >
-          <p className="text-xs uppercase tracking-[0.2em] text-[#4a456f]">
+          <p className="quick-selected-label text-xs uppercase tracking-[0.2em] text-[#4a456f]">
             Selected Action
           </p>
           <div className="mt-2 flex items-center gap-2">
@@ -2982,7 +2988,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                   </div>
                 )}
                 {!galleryLoading && galleryItems.length === 0 && !galleryError && (
-                  <div className="rounded-2xl border border-[#ead8c4] bg-white px-4 py-6 text-sm text-[#7a1f1f]/70">
+                  <div className="quick-empty-state rounded-2xl border border-[#ead8c4] bg-white px-4 py-6 text-sm text-[#7a1f1f]/70">
                     No gallery items yet.
                   </div>
                 )}
@@ -3261,7 +3267,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                   </div>
                 )}
                 {!heroLoading && heroItems.length === 0 && !heroError && (
-                  <div className="rounded-2xl border border-[#ead8c4] bg-white px-4 py-6 text-sm text-[#7a1f1f]/70">
+                  <div className="quick-empty-state rounded-2xl border border-[#ead8c4] bg-white px-4 py-6 text-sm text-[#7a1f1f]/70">
                     No hero slides yet.
                   </div>
                 )}
@@ -3517,7 +3523,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                   </div>
                 )}
                 {!announcementLoading && announcementItems.length === 0 && !announcementError && (
-                  <div className="rounded-2xl border border-[#ead8c4] bg-white px-4 py-6 text-sm text-[#7a1f1f]/70">
+                  <div className="quick-empty-state rounded-2xl border border-[#ead8c4] bg-white px-4 py-6 text-sm text-[#7a1f1f]/70">
                     No announcements yet.
                   </div>
                 )}
