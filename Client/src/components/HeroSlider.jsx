@@ -159,12 +159,14 @@ export default function HeroSlider() {
 
         </Swiper>
 
-        <div className="hero-nav-wrap mt-8 flex items-center justify-center gap-4">
+        <div className="hero-nav-wrap mt-8 flex items-center justify-center gap-3">
           <button ref={prevRef} className="nav-btn group" aria-label="Previous slide">
-            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[#7a1f1f] group-hover:scale-110 transition-transform" />
+            <ChevronLeft className="w-5 h-5 text-[#7a1f1f] transition-transform group-hover:-translate-x-0.5" />
+            <span className="nav-btn-label">Prev</span>
           </button>
           <button ref={nextRef} className="nav-btn group" aria-label="Next slide">
-            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#7a1f1f] group-hover:scale-110 transition-transform" />
+            <span className="nav-btn-label">Next</span>
+            <ChevronRight className="w-5 h-5 text-[#7a1f1f] transition-transform group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>
@@ -172,30 +174,40 @@ export default function HeroSlider() {
       <style>{`
         /* Navigation Buttons */
         .nav-btn {
-          width: 52px;
-          height: 52px;
-          border-radius: 999px;
-          background: radial-gradient(circle at 30% 25%, #ffffff 0%, #fff3d6 55%, #ffe7b2 100%);
-          border: 1px solid rgba(122, 31, 31, 0.22);
+          min-width: 128px;
+          height: 44px;
+          padding: 0 16px;
+          border-radius: 12px;
+          background: #fff;
+          border: 1px solid #d9b88e;
           display: flex;
           align-items: center;
+          gap: 10px;
           justify-content: center;
           cursor: pointer;
-          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-          box-shadow: 0 12px 26px rgba(92, 38, 14, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+          box-shadow: 0 8px 16px rgba(122, 31, 31, 0.1);
+        }
+        .nav-btn-label {
+          color: #7a1f1f;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
         }
         .nav-btn:hover {
-          transform: translateY(-2px);
-          border-color: #8b2c2c;
-          box-shadow: 0 16px 34px rgba(92, 38, 14, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.98);
+          transform: translateY(-1px);
+          background: #fffaf0;
+          border-color: #c08b4f;
+          box-shadow: 0 10px 18px rgba(122, 31, 31, 0.16);
         }
         .nav-btn:active {
-          transform: translateY(0) scale(0.96);
+          transform: translateY(0);
         }
         .nav-btn.swiper-button-disabled {
           opacity: 0.45;
           cursor: not-allowed;
-          box-shadow: 0 7px 16px rgba(92, 38, 14, 0.14);
+          box-shadow: none;
         }
 
         /* Swiper Slide Styling */
