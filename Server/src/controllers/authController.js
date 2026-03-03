@@ -347,7 +347,7 @@ const createAdmin = async (req, res, next) => {
     const exists = await User.findOne({ email: normalizedEmail });
     if (exists) return res.status(409).json({ message: "Email already exists" });
     if (normalizedMobile) {
-      const mobileUsers = await findUsersByCanonicalMobile(normalizedMobile);
+      const mobileUsers = await findUsersByNormalizedMobile(normalizedMobile);
       if (mobileUsers.length > 0) {
         return res.status(409).json({ message: "Mobile already exists" });
       }
