@@ -162,10 +162,8 @@ export default function HeroSlider() {
         <div className="hero-nav-wrap mt-8 flex items-center justify-center gap-3">
           <button ref={prevRef} className="nav-btn group" aria-label="Previous slide">
             <ChevronLeft className="w-5 h-5 text-[#7a1f1f] transition-transform group-hover:-translate-x-0.5" />
-            <span className="nav-btn-label">Prev</span>
           </button>
           <button ref={nextRef} className="nav-btn group" aria-label="Next slide">
-            <span className="nav-btn-label">Next</span>
             <ChevronRight className="w-5 h-5 text-[#7a1f1f] transition-transform group-hover:translate-x-0.5" />
           </button>
         </div>
@@ -174,26 +172,18 @@ export default function HeroSlider() {
       <style>{`
         /* Navigation Buttons */
         .nav-btn {
-          min-width: 128px;
+          width: 56px;
           height: 44px;
-          padding: 0 16px;
-          border-radius: 12px;
+          padding: 0;
+          border-radius: 10px;
           background: #fff;
           border: 1px solid #d9b88e;
           display: flex;
           align-items: center;
-          gap: 10px;
           justify-content: center;
           cursor: pointer;
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
           box-shadow: 0 8px 16px rgba(122, 31, 31, 0.1);
-        }
-        .nav-btn-label {
-          color: #7a1f1f;
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
         }
         .nav-btn:hover {
           transform: translateY(-1px);
