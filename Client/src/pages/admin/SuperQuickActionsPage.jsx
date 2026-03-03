@@ -1610,6 +1610,18 @@ const buildExportPayload = (filters = exportFilters) => ({
           background: #1a2742 !important;
           border-color: #4b5f86 !important;
         }
+        .admin-theme-dark .quick-page-root .quick-admin-panel .quick-admin-error {
+          background: rgba(127, 29, 29, 0.32) !important;
+          border-color: #ef4444 !important;
+          color: #fecaca !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-admin-panel .quick-edit-form {
+          background: #1a2742 !important;
+          border-color: #4b5f86 !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-admin-panel .quick-edit-form .quick-edit-title {
+          color: #f3f7ff !important;
+        }
         .admin-theme-dark .quick-page-root .quick-admin-panel .quick-announcement-card {
           background: linear-gradient(180deg, #14203a 0%, #121b31 100%) !important;
           border-color: #3a4a6c !important;
@@ -2153,7 +2165,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                     </div>
                   )}
                   {adminError && (
-                    <div className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    <div className="quick-admin-error md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                       {adminError}
                     </div>
                   )}
@@ -2324,10 +2336,10 @@ const buildExportPayload = (filters = exportFilters) => ({
                   {editForm && (
                     <form
                       onSubmit={handleUpdateAdmin}
-                      className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-[#ead8c4] bg-[#fffaf4] p-5"
+                      className="quick-edit-form mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-[#ead8c4] bg-[#fffaf4] p-5"
                     >
                       <div className="md:col-span-2 flex items-center justify-between">
-                        <h5 className="text-base font-semibold text-[#7a1f1f]">Edit Admin</h5>
+                        <h5 className="quick-edit-title text-base font-semibold text-[#7a1f1f]">Edit Admin</h5>
                         <button
                           type="button"
                           onClick={() => setEditForm(null)}

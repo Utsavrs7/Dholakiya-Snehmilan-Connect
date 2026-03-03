@@ -324,9 +324,11 @@ const createSuperAdmin = async (req, res, next) => {
 const createAdmin = async (req, res, next) => {
   try {
     const { name, email, password, mobile, village, role } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedMobile = toCanonicalIndianMobile(mobile);
 
     // Validate required fields
-    if (!email || !password || !role) {
+    if (!normalizedEmail || !password || !role) {
       return res.status(400).json({ message: "Missing fields" });
     }
 
@@ -342,18 +344,24 @@ const createAdmin = async (req, res, next) => {
     }
 
     // Prevent duplicate email
-    const exists = await User.findOne({ email });
+    const exists = await User.findOne({ email: normalizedEmail });
     if (exists) return res.status(409).json({ message: "Email already exists" });
+    if (normalizedMobile) {
+      const mobileUsers = await findUsersByCanonicalMobile(normalizedMobile);
+      if (mobileUsers.length > 0) {
+        return res.status(409).json({ message: "Mobile already exists" });
+      }
+    }
 
     // Hash password and create admin
     const passwordHash = await bcrypt.hash(password, 10);
     const safeName = (name || "Dholakiya Admin").trim();
     const user = await User.create({
       name: safeName,
-      email,
+      email: normalizedEmail,
       passwordHash,
       role,
-      mobile: mobile || "",
+      mobile: normalizedMobile || "",
       village: village || "",
     });
     emitAdminSessionUpdate({
