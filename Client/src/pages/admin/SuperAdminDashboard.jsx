@@ -911,6 +911,11 @@ export default function SuperAdminDashboard() {
           color: #dbeafe !important;
           border-color: #3b82f6 !important;
         }
+        .admin-theme-dark .super-admin-page .result-status-badge.result-status-edited {
+          background: #4c1d95 !important;
+          color: #f3e8ff !important;
+          border-color: #a855f7 !important;
+        }
         @media (max-width: 767px) {
           .super-admin-page .admin-card {
             border-radius: 1rem;

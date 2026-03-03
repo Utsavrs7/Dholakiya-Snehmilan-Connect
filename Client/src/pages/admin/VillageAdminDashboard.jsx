@@ -751,6 +751,11 @@ export default function VillageAdminDashboard() {
           color: #dbeafe !important;
           border-color: #3b82f6 !important;
         }
+        .admin-theme-dark .village-admin-page .result-status-badge.result-status-edited {
+          background: #4c1d95 !important;
+          color: #f3e8ff !important;
+          border-color: #a855f7 !important;
+        }
         .village-admin-page .approval-panel-shell {
           background: linear-gradient(180deg, #fff5e8 0%, #fffaf2 100%);
           border: 1px solid #e4cfb4;
