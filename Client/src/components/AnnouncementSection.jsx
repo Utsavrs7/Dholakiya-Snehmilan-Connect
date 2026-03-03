@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { startTransition, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getSocket } from "../utils/realtime";
 import { getCachedData, setCachedData } from "../utils/apiCache";
 import { apiUrl } from "../utils/api";
@@ -8,6 +8,7 @@ const ANNOUNCEMENTS_CACHE_KEY = "announcements_list";
 const ANNOUNCEMENTS_CACHE_TTL_MS = 90 * 1000;
 
 export default function AnnouncementSection() {
+  const navigate = useNavigate();
   const sectionRef = useRef(null);
   const shouldPinAfterPageChangeRef = useRef(false);
   // Announcements state (public)
@@ -103,6 +104,12 @@ export default function AnnouncementSection() {
     window.scrollTo({ top: y, behavior: "auto" });
   };
 
+  const handleSubmitResultNavigate = () => {
+    startTransition(() => {
+      navigate("/SubmitResult", { state: { activeSection: "announcements" } });
+    });
+  };
+
   useEffect(() => {
     if (!shouldPinAfterPageChangeRef.current) return;
     shouldPinAfterPageChangeRef.current = false;
@@ -166,13 +173,13 @@ export default function AnnouncementSection() {
                   {item.message}
                 </p>
                 {showSubmitButton && (
-                  <Link
-                    to="/SubmitResult"
-                    state={{ activeSection: "announcements" }}
+                  <button
+                    type="button"
+                    onClick={handleSubmitResultNavigate}
                     className="inline-block bg-yellow-400 text-black px-6 py-2 rounded-full font-semibold hover:bg-yellow-500 transition"
                   >
                     {item.submitButtonLabel || "Submit Result"}
-                  </Link>
+                  </button>
                 )}
               </div>
             );
