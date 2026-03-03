@@ -10,10 +10,10 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 
 const fallbackImages = [
-  { imageUrl: "/Background Images/Bg1.jpg" },
-  { imageUrl: "/Background Images/Bg2.jpg" },
-  { imageUrl: "/Background Images/Bg3.jpg" },
-  { imageUrl: "/Background Images/Bg4.jpg" },
+  { imageUrl: "/Background Images/Bg1.JPG" },
+  { imageUrl: "/Background Images/Bg2.JPEG" },
+  { imageUrl: "/Background Images/Bg3.JPEG" },
+  { imageUrl: "/Background Images/Bg4.JPEG" },
   { imageUrl: "/Background Images/bg2.jpg" },
 ];
 const HERO_CACHE_KEY = "hero_slides";
