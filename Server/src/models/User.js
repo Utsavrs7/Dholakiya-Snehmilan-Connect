@@ -35,15 +35,8 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Keep uniqueness scoped by role, not globally across all accounts.
-userSchema.index(
-  { role: 1, email: 1 },
-  {
-    unique: true,
-    partialFilterExpression: {
-      email: { $type: "string", $ne: "" },
-    },
-  }
-);
+// Compound indexes for faster role-scoped duplicate checks in controller logic.
+userSchema.index({ role: 1, email: 1 });
+userSchema.index({ role: 1, mobile: 1 });
 
 module.exports = mongoose.model("User", userSchema);

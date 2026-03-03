@@ -22,6 +22,7 @@ const REFRESH_COOKIE_SAMESITE = String(process.env.REFRESH_COOKIE_SAMESITE || "s
   .trim()
   .toLowerCase();
 const REFRESH_COOKIE_DOMAIN = String(process.env.REFRESH_COOKIE_DOMAIN || "").trim();
+const ADMIN_ROLES = ["super_admin", "village_admin"];
 
 const emitAdminSessionUpdate = (payload = {}) => {
   emitUpdate("admin-session", payload);
@@ -200,28 +201,15 @@ const findUserByChannelAndIdentifier = async (channel, identifier, roleScope = n
   return matchedUsers[0] || null;
 };
 
-// Utility: fetch all users matching a normalized mobile.
-const findUsersByNormalizedMobile = async (identifier) => {
+// Utility: fetch all users matching a normalized mobile with optional extra filter.
+const findUsersByNormalizedMobile = async (identifier, extraFilter = {}) => {
   const canonicalInputMobile = toCanonicalIndianMobile(identifier);
   if (!canonicalInputMobile) return [];
-  const exactMatches = await User.find({ mobile: canonicalInputMobile });
-  if (exactMatches.length) return exactMatches;
-  const usersWithMobile = await User.find({ mobile: { $exists: true, $ne: "" } }).limit(5000);
-  return usersWithMobile.filter(
-    (user) => toCanonicalIndianMobile(user.mobile) === canonicalInputMobile
-  );
-};
-
-const findUsersByNormalizedMobileAndRole = async (identifier, role) => {
-  const normalizedRole = String(role || "").trim().toLowerCase();
-  if (!normalizedRole) return [];
-  const canonicalInputMobile = toCanonicalIndianMobile(identifier);
-  if (!canonicalInputMobile) return [];
-  const exactMatches = await User.find({ mobile: canonicalInputMobile, role: normalizedRole });
+  const exactMatches = await User.find({ mobile: canonicalInputMobile, ...extraFilter });
   if (exactMatches.length) return exactMatches;
   const usersWithMobile = await User.find({
-    role: normalizedRole,
     mobile: { $exists: true, $ne: "" },
+    ...extraFilter,
   }).limit(5000);
   return usersWithMobile.filter(
     (user) => toCanonicalIndianMobile(user.mobile) === canonicalInputMobile
@@ -263,8 +251,8 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const existingByEmail = await User.findOne({ email: normalizedEmail });
-    const existingByMobileList = await findUsersByNormalizedMobile(normalizedMobile);
+    const existingByEmail = await User.findOne({ email: normalizedEmail, role: "user" });
+    const existingByMobileList = await findUsersByNormalizedMobile(normalizedMobile, { role: "user" });
     const existingByMobile = existingByMobileList[0] || null;
 
     if (existingByEmail && existingByMobile && String(existingByEmail._id) === String(existingByMobile._id)) {
@@ -319,9 +307,9 @@ const createSuperAdmin = async (req, res, next) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const emailExists = Boolean(await User.findOne({ email: normalizedEmail, role }));
+    const emailExists = Boolean(await User.findOne({ email: normalizedEmail, role: { $in: ADMIN_ROLES } }));
     const mobileExists = normalizedMobile
-      ? (await findUsersByNormalizedMobileAndRole(normalizedMobile, role)).length > 0
+      ? (await findUsersByNormalizedMobile(normalizedMobile, { role: { $in: ADMIN_ROLES } })).length > 0
       : false;
     if (emailExists || mobileExists) {
       return res.status(409).json({
@@ -385,9 +373,9 @@ const createAdmin = async (req, res, next) => {
       return res.status(400).json({ message: "Village required for village admin" });
     }
 
-    const emailExists = Boolean(await User.findOne({ email: normalizedEmail }));
+    const emailExists = Boolean(await User.findOne({ email: normalizedEmail, role: { $in: ADMIN_ROLES } }));
     const mobileExists = normalizedMobile
-      ? (await findUsersByNormalizedMobile(normalizedMobile)).length > 0
+      ? (await findUsersByNormalizedMobile(normalizedMobile, { role: { $in: ADMIN_ROLES } })).length > 0
       : false;
     if (emailExists || mobileExists) {
       return res.status(409).json({
@@ -893,9 +881,31 @@ const updateAdmin = async (req, res, next) => {
     const admin = await User.findById(id);
     if (!admin) return res.status(404).json({ message: "Admin not found" });
 
+    const nextEmail = email !== undefined ? String(email || "").trim().toLowerCase() : admin.email;
+    const nextMobile = mobile !== undefined ? toCanonicalIndianMobile(mobile) : admin.mobile;
+    const emailExists = Boolean(
+      await User.findOne({
+        _id: { $ne: admin._id },
+        email: nextEmail,
+        role: { $in: ADMIN_ROLES },
+      })
+    );
+    const mobileExists = nextMobile
+      ? (await findUsersByNormalizedMobile(nextMobile, {
+          _id: { $ne: admin._id },
+          role: { $in: ADMIN_ROLES },
+        })).length > 0
+      : false;
+    if (emailExists || mobileExists) {
+      return res.status(409).json({
+        message: buildAdminDuplicateMessage({ emailExists, mobileExists }) || "Duplicate value already exists",
+        errors: { email: emailExists, mobile: mobileExists },
+      });
+    }
+
     if (name !== undefined) admin.name = name;
-    if (email !== undefined) admin.email = email;
-    if (mobile !== undefined) admin.mobile = mobile;
+    if (email !== undefined) admin.email = nextEmail;
+    if (mobile !== undefined) admin.mobile = nextMobile || "";
     if (village !== undefined) admin.village = village;
     if (role !== undefined) admin.role = role;
     if (password) {
