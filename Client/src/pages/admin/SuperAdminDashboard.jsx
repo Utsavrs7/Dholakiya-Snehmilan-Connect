@@ -53,6 +53,7 @@ export default function SuperAdminDashboard() {
   const [villageMedium, setVillageMedium] = useState("");
   const [villageLoading, setVillageLoading] = useState(false);
   const [villageError, setVillageError] = useState("");
+  const [showVillageResultsPanel, setShowVillageResultsPanel] = useState(false);
   const [adminForm, setAdminForm] = useState({
     name: "",
     email: "",
@@ -130,7 +131,13 @@ export default function SuperAdminDashboard() {
     try {
       const routeState = location.state?.returnState;
       if (routeState) {
-        if (typeof routeState.selectedVillage === "string") setSelectedVillage(routeState.selectedVillage);
+        if (typeof routeState.selectedVillage === "string") {
+          setSelectedVillage(routeState.selectedVillage);
+          setShowVillageResultsPanel(Boolean(routeState.selectedVillage));
+        }
+        if (typeof routeState.showVillageResultsPanel === "boolean") {
+          setShowVillageResultsPanel(routeState.showVillageResultsPanel);
+        }
         if (Number.isFinite(routeState.villagePage)) setVillagePage(routeState.villagePage);
         if (Number.isFinite(routeState.villageLimit)) setVillageLimit(routeState.villageLimit);
         if (typeof routeState.villageStatus === "string") setVillageStatus(routeState.villageStatus);
@@ -143,6 +150,13 @@ export default function SuperAdminDashboard() {
       const raw = sessionStorage.getItem(DASHBOARD_STATE_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
+      if (typeof saved.selectedVillage === "string") {
+        setSelectedVillage(saved.selectedVillage);
+        setShowVillageResultsPanel(Boolean(saved.selectedVillage));
+      }
+      if (typeof saved.showVillageResultsPanel === "boolean") {
+        setShowVillageResultsPanel(saved.showVillageResultsPanel);
+      }
       if (Number.isFinite(saved.villagePage)) setVillagePage(saved.villagePage);
       if (Number.isFinite(saved.villageLimit)) setVillageLimit(saved.villageLimit);
       if (typeof saved.villageStatus === "string") setVillageStatus(saved.villageStatus);
@@ -157,6 +171,8 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     const payload = {
+      selectedVillage,
+      showVillageResultsPanel,
       villagePage,
       villageLimit,
       villageStatus,
@@ -167,6 +183,8 @@ export default function SuperAdminDashboard() {
     };
     sessionStorage.setItem(DASHBOARD_STATE_KEY, JSON.stringify(payload));
   }, [
+    selectedVillage,
+    showVillageResultsPanel,
     villagePage,
     villageLimit,
     villageStatus,
@@ -273,10 +291,8 @@ export default function SuperAdminDashboard() {
         : "all";
     setVillageStatus(nextStatus);
     setVillagePage(1);
-    if (!selectedVillage && villageOptions.length > 0) {
-      setSelectedVillage(villageOptions[0]);
-      return;
-    }
+    setSelectedVillage("");
+    setShowVillageResultsPanel(true);
     requestAnimationFrame(() => {
       setTimeout(scrollToVillageResults, 20);
     });
@@ -337,25 +353,25 @@ export default function SuperAdminDashboard() {
 
   // Reload results when filters change
   useEffect(() => {
-    if (!selectedVillage) return;
+    if (!showVillageResultsPanel) return;
     fetchVillageResults(1, villageLimit);
-  }, [selectedVillage, villageStatus, villageSearch, villageYear, villageStandard, villageMedium]);
+  }, [showVillageResultsPanel, selectedVillage, villageStatus, villageSearch, villageYear, villageStandard, villageMedium]);
 
   useEffect(() => {
-    if (!selectedVillage || !villageResultsRef.current) return;
+    if (!showVillageResultsPanel || !villageResultsRef.current) return;
     villageResultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [selectedVillage]);
+  }, [showVillageResultsPanel, selectedVillage]);
 
   useEffect(() => {
-    if (!selectedVillage || villageLoading || !villageResultsRef.current) return;
+    if (!showVillageResultsPanel || villageLoading || !villageResultsRef.current) return;
     villageResultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [selectedVillage, villageLoading, villageResults.length]);
+  }, [showVillageResultsPanel, selectedVillage, villageLoading, villageResults.length]);
 
   // Reload results when page or limit changes
   useEffect(() => {
-    if (!selectedVillage) return;
+    if (!showVillageResultsPanel) return;
     fetchVillageResults(villagePage, villageLimit);
-  }, [villagePage, villageLimit]);
+  }, [showVillageResultsPanel, villagePage, villageLimit]);
 
   // Keep select-all checkbox in sync
   useEffect(() => {
@@ -451,12 +467,11 @@ export default function SuperAdminDashboard() {
 
   // Load village results for selected village
   const fetchVillageResults = async (nextPage = villagePage, nextLimit = villageLimit) => {
-    if (!selectedVillage) return;
+    if (!showVillageResultsPanel) return;
     setVillageError("");
     setVillageLoading(true);
     try {
       const params = new URLSearchParams({
-        village: selectedVillage,
         status: villageStatus,
         search: villageSearch,
         year: villageYear,
@@ -465,6 +480,7 @@ export default function SuperAdminDashboard() {
         page: String(nextPage),
         limit: String(nextLimit),
       });
+      if (selectedVillage) params.set("village", selectedVillage);
       const data = await superAdminFetch(`/api/results/admin/list?${params.toString()}`);
       setVillageResults(data.data || []);
       setVillageTotal(data.total || 0);
@@ -1114,6 +1130,7 @@ export default function SuperAdminDashboard() {
                 key={village}
                 onClick={() => {
                   setSelectedVillage(village);
+                  setShowVillageResultsPanel(true);
                   setVillagePage(1);
                 }}
                 className={`rounded-xl border p-3 md:p-4 text-left transition ${
@@ -1515,17 +1532,20 @@ export default function SuperAdminDashboard() {
       )}
 
       {/* Village results */}
-      {selectedVillage && (
+      {showVillageResultsPanel && (
         <div
           ref={villageResultsRef}
             className="mt-5 md:mt-8 admin-card village-results-enter village-results-panel bg-[#fffaf2] border border-[#eddcc7] rounded-2xl p-4 md:p-6"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h2 className="text-lg font-semibold text-[#7a1f1f]">
-              Results: {selectedVillage}
+              Results: {selectedVillage || "All Villages"}
             </h2>
             <button
-              onClick={() => setSelectedVillage("")}
+              onClick={() => {
+                setSelectedVillage("");
+                setShowVillageResultsPanel(false);
+              }}
               className="village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] text-sm text-[#7a1f1f]"
             >
               Clear

@@ -1526,7 +1526,9 @@ const buildExportPayload = (filters = exportFilters) => ({
           color: #c5d4f3 !important;
         }
         .admin-theme-dark .quick-page-root .quick-empty-state {
-          color: #f8fafc !important;
+          background: #0f1a2e !important;
+          border-color: #3b4d74 !important;
+          color: #dbe7ff !important;
         }
         .admin-theme-dark .quick-page-root .quick-content-chip {
           background: #121c32 !important;
