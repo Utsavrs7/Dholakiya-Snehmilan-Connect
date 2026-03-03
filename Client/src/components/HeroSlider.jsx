@@ -14,7 +14,11 @@ const fallbackImages = [
   { imageUrl: "/Background Images/Bg-2.jpeg" },
   { imageUrl: "/Background Images/Bg-3.jpeg" },
   { imageUrl: "/Background Images/Bg-4.jpeg" },
-  { imageUrl: "/Background Images/bg2.jpg" },
+  { imageUrl: "/Background Images/1.heic" },
+  { imageUrl: "/Background Images/2.heic" },
+  { imageUrl: "/Background Images/3.heic" },
+  { imageUrl: "/Background Images/4.heic" },
+  { imageUrl: "/Background Images/5.heic" },
 ];
 const HERO_CACHE_KEY = "hero_slides";
 const HERO_CACHE_TTL_MS = 2 * 60 * 1000;

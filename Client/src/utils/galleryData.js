@@ -15,4 +15,9 @@ export const DEFAULT_GALLERY_IMAGES = [
   { imageUrl: "Background Images/Bg-2.jpeg", category: "butbhavani_havan" },
   { imageUrl: "Background Images/Bg-4.jpeg", category: "butbhavani_havan" },
   { imageUrl: "Background Images/Bg.heic", category: "butbhavani_havan" },
+  { imageUrl: "Background Images/1.heic", category: "butbhavani_havan" },
+  { imageUrl: "Background Images/2.heic", category: "butbhavani_havan" },
+  { imageUrl: "Background Images/3.heic", category: "butbhavani_havan" },
+  { imageUrl: "Background Images/4.heic", category: "butbhavani_havan" },
+  { imageUrl: "Background Images/5.heic", category: "butbhavani_havan" },
 ];
