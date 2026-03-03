@@ -11,8 +11,8 @@ export const DEFAULT_GALLERY_IMAGES = [
   { imageUrl: "Background Images/bg2.jpg", category: "snehmilan" },
   { imageUrl: "Background Images/bg3.jfif", category: "snehmilan" },
   { imageUrl: "Background Images/bg4.jfif", category: "snehmilan" },
-  { imageUrl: "Background Images/Bg-4.jpeg", category: "butbhavanimaa" },
-  { imageUrl: "Background Images/Bg-4.jpeg", category: "butbhavanimaa" },
-  { imageUrl: "Background Images/Bg-4.jpeg", category: "butbhavanimaa" },
-  { imageUrl: "Background Images/Bg-4.jpeg", category: "butbhavanimaa" },
+  { imageUrl: "Background Images/Bg-4.jpeg", category: "but bhavani maa" },
+  { imageUrl: "Background Images/Bg-4.jpeg", category: "but bhavani maa" },
+  { imageUrl: "Background Images/Bg-4.jpeg", category: "but bhavani maa" },
+  { imageUrl: "Background Images/Bg-4.jpeg", category: "but bhavani maa" },
 ];
