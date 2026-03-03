@@ -207,14 +207,7 @@ export default function HeroSlider() {
         }
         @media (max-width: 767px) {
           .nav-btn {
-            width: 38px;
-            height: 38px;
-          }
-          .nav-btn-prev {
-            left: 8px;
-          }
-          .nav-btn-next {
-            right: 8px;
+            display: none;
           }
         }
         @media (min-width: 1280px) {
