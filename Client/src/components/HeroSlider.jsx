@@ -175,27 +175,27 @@ export default function HeroSlider() {
           width: 52px;
           height: 52px;
           border-radius: 999px;
-          background: linear-gradient(145deg, #fffef9 0%, #fff4dc 100%);
-          border: 1px solid rgba(122, 31, 31, 0.16);
+          background: radial-gradient(circle at 30% 25%, #ffffff 0%, #fff3d6 55%, #ffe7b2 100%);
+          border: 1px solid rgba(122, 31, 31, 0.22);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-          box-shadow: 0 10px 24px rgba(122, 31, 31, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          box-shadow: 0 12px 26px rgba(92, 38, 14, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.95);
         }
         .nav-btn:hover {
           transform: translateY(-2px);
-          border-color: #7a1f1f;
-          box-shadow: 0 14px 30px rgba(122, 31, 31, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          border-color: #8b2c2c;
+          box-shadow: 0 16px 34px rgba(92, 38, 14, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.98);
         }
         .nav-btn:active {
-          transform: translateY(0);
+          transform: translateY(0) scale(0.96);
         }
         .nav-btn.swiper-button-disabled {
-          opacity: 0.5;
+          opacity: 0.45;
           cursor: not-allowed;
-          box-shadow: 0 6px 14px rgba(122, 31, 31, 0.12);
+          box-shadow: 0 7px 16px rgba(92, 38, 14, 0.14);
         }
 
         /* Swiper Slide Styling */
