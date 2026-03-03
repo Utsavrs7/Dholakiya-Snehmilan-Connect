@@ -343,14 +343,15 @@ const createAdmin = async (req, res, next) => {
       return res.status(400).json({ message: "Village required for village admin" });
     }
 
-    // Prevent duplicate email
+    const duplicateMessages = [];
     const exists = await User.findOne({ email: normalizedEmail });
-    if (exists) return res.status(409).json({ message: "Email already exists" });
+    if (exists) duplicateMessages.push("Email already exists");
     if (normalizedMobile) {
       const mobileUsers = await findUsersByNormalizedMobile(normalizedMobile);
-      if (mobileUsers.length > 0) {
-        return res.status(409).json({ message: "Mobile already exists" });
-      }
+      if (mobileUsers.length > 0) duplicateMessages.push("Mobile already exists");
+    }
+    if (duplicateMessages.length > 0) {
+      return res.status(409).json({ message: duplicateMessages.join("\n") });
     }
 
     // Hash password and create admin
@@ -664,6 +665,7 @@ const getAdmins = async (req, res, next) => {
       id: u._id,
       name: u.name,
       email: u.email,
+      mobile: u.mobile || "",
       role: u.role,
       village: u.village,
       lastLogin: u.lastLogin,

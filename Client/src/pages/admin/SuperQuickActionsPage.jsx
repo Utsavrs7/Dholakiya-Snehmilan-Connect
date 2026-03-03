@@ -1290,16 +1290,20 @@ const buildExportPayload = (filters = exportFilters) => ({
       }
       const normalizedEmail = String(adminForm.email || "").trim().toLowerCase();
       const normalizedMobile = toCanonicalMobile(adminForm.mobile);
+      const duplicateErrors = [];
       if (normalizedMobile) {
         const hasMobileDup = adminList.some(
           (a) => toCanonicalMobile(a?.mobile) === normalizedMobile
         );
-        if (hasMobileDup) throw new Error("Mobile already exists");
+        if (hasMobileDup) duplicateErrors.push("Mobile already exists");
       }
       const hasEmailDup = adminList.some(
         (a) => String(a?.email || "").trim().toLowerCase() === normalizedEmail
       );
-      if (hasEmailDup) throw new Error("Email already exists");
+      if (hasEmailDup) duplicateErrors.push("Email already exists");
+      if (duplicateErrors.length) {
+        throw new Error(duplicateErrors.join("\n"));
+      }
       const token = getAdminTokenFor("super_admin");
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/admins`, {
         method: "POST",
@@ -2183,7 +2187,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                     </div>
                   )}
                   {adminError && (
-                    <div className="quick-admin-error md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    <div className="quick-admin-error md:col-span-2 whitespace-pre-line rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                       {adminError}
                     </div>
                   )}

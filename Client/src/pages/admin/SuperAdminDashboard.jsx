@@ -405,16 +405,20 @@ export default function SuperAdminDashboard() {
       }
       const normalizedEmail = String(adminForm.email || "").trim().toLowerCase();
       const normalizedMobile = toCanonicalMobile(adminForm.mobile);
+      const duplicateErrors = [];
       if (normalizedMobile) {
         const hasMobileDup = adminList.some(
           (a) => toCanonicalMobile(a?.mobile) === normalizedMobile
         );
-        if (hasMobileDup) throw new Error("Mobile already exists");
+        if (hasMobileDup) duplicateErrors.push("Mobile already exists");
       }
       const hasEmailDup = adminList.some(
         (a) => String(a?.email || "").trim().toLowerCase() === normalizedEmail
       );
-      if (hasEmailDup) throw new Error("Email already exists");
+      if (hasEmailDup) duplicateErrors.push("Email already exists");
+      if (duplicateErrors.length) {
+        throw new Error(duplicateErrors.join("\n"));
+      }
       await superAdminFetch("/api/auth/admins", {
         method: "POST",
         headers: {
@@ -1533,7 +1537,7 @@ export default function SuperAdminDashboard() {
               {/* Error with premium styling */}
               {editError && (
                 <div className="super-admin-error md:col-span-2 bg-red-50 border border-red-200 rounded-2xl p-4">
-                  <p className="text-sm text-red-700 font-medium">{editError}</p>
+                  <p className="whitespace-pre-line text-sm text-red-700 font-medium">{editError}</p>
                 </div>
               )}
 
@@ -1924,7 +1928,7 @@ export default function SuperAdminDashboard() {
               {/* Error with premium styling */}
               {adminError && (
                 <div className="super-admin-error md:col-span-2 bg-red-50 border border-red-200 rounded-2xl p-4">
-                  <p className="text-sm text-red-700 font-medium">{adminError}</p>
+                  <p className="whitespace-pre-line text-sm text-red-700 font-medium">{adminError}</p>
                 </div>
               )}
 
