@@ -172,9 +172,9 @@ export default function HeroSlider() {
           width: 44px;
           height: 44px;
           padding: 0;
-          border-radius: 12px;
-          background: rgba(22, 28, 45, 0.58);
-          border: 1px solid rgba(255, 255, 255, 0.28);
+          border-radius: 14px;
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.7);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -183,19 +183,19 @@ export default function HeroSlider() {
           top: 50%;
           transform: translateY(-50%);
           z-index: 40;
-          backdrop-filter: blur(4px);
-          transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
-          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+          transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+          box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
         }
         .nav-btn-prev {
-          left: max(10px, calc(50% - 430px));
+          left: 12px;
         }
         .nav-btn-next {
-          right: max(10px, calc(50% - 430px));
+          right: 12px;
         }
         .nav-btn:hover {
-          background: rgba(22, 28, 45, 0.78);
-          border-color: rgba(255, 255, 255, 0.5);
+          background: rgba(255, 255, 255, 0.16);
+          border-color: rgba(255, 255, 255, 0.92);
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.26);
         }
         .nav-btn:active {
           opacity: 0.9;
@@ -215,6 +215,14 @@ export default function HeroSlider() {
           }
           .nav-btn-next {
             right: 8px;
+          }
+        }
+        @media (min-width: 1280px) {
+          .nav-btn-prev {
+            left: 18px;
+          }
+          .nav-btn-next {
+            right: 18px;
           }
         }
 
