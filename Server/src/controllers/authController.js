@@ -212,6 +212,22 @@ const findUsersByNormalizedMobile = async (identifier) => {
   );
 };
 
+const findUsersByNormalizedMobileAndRole = async (identifier, role) => {
+  const normalizedRole = String(role || "").trim().toLowerCase();
+  if (!normalizedRole) return [];
+  const canonicalInputMobile = toCanonicalIndianMobile(identifier);
+  if (!canonicalInputMobile) return [];
+  const exactMatches = await User.find({ mobile: canonicalInputMobile, role: normalizedRole });
+  if (exactMatches.length) return exactMatches;
+  const usersWithMobile = await User.find({
+    role: normalizedRole,
+    mobile: { $exists: true, $ne: "" },
+  }).limit(5000);
+  return usersWithMobile.filter(
+    (user) => toCanonicalIndianMobile(user.mobile) === canonicalInputMobile
+  );
+};
+
 const buildAdminDuplicateMessage = ({ emailExists = false, mobileExists = false } = {}) => {
   const messages = [];
   if (mobileExists) messages.push("Mobile number is already exist");
@@ -303,9 +319,9 @@ const createSuperAdmin = async (req, res, next) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const emailExists = Boolean(await User.findOne({ email: normalizedEmail }));
+    const emailExists = Boolean(await User.findOne({ email: normalizedEmail, role }));
     const mobileExists = normalizedMobile
-      ? (await findUsersByNormalizedMobile(normalizedMobile)).length > 0
+      ? (await findUsersByNormalizedMobileAndRole(normalizedMobile, role)).length > 0
       : false;
     if (emailExists || mobileExists) {
       return res.status(409).json({

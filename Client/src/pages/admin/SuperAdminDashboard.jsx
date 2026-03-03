@@ -20,6 +20,8 @@ export default function SuperAdminDashboard() {
   const [adminListError, setAdminListError] = useState("");
   const [adminListLoading, setAdminListLoading] = useState(false);
   const [adminSummary, setAdminSummary] = useState([]);
+  const [summaryPage, setSummaryPage] = useState(1);
+  const summaryPageSize = 4;
   const superAdminUser = getAdminUserFor("super_admin");
   const [summaryError, setSummaryError] = useState("");
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -264,6 +266,19 @@ export default function SuperAdminDashboard() {
     });
     return Array.from(set).sort();
   }, [adminList, adminSummary]);
+
+  const summaryTotalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(villageOptions.length / summaryPageSize));
+  }, [villageOptions.length]);
+
+  const pagedVillageOptions = useMemo(() => {
+    const start = (summaryPage - 1) * summaryPageSize;
+    return villageOptions.slice(start, start + summaryPageSize);
+  }, [villageOptions, summaryPage]);
+
+  useEffect(() => {
+    setSummaryPage((prev) => Math.min(prev, summaryTotalPages));
+  }, [summaryTotalPages]);
 
   const yearOptions = useMemo(() => {
     const years = new Set([currentYear]);
@@ -1126,7 +1141,7 @@ export default function SuperAdminDashboard() {
         )}
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3">
-          {villageOptions.map((village) => {
+          {pagedVillageOptions.map((village) => {
             const row = summaryMap[village] || {
               village,
               total: 0,
@@ -1189,6 +1204,29 @@ export default function SuperAdminDashboard() {
             <div className="text-sm text-[#7a1f1f]/70">No summary available.</div>
           )}
         </div>
+        {villageOptions.length > summaryPageSize && (
+          <div className="village-pagination mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between text-sm">
+            <span className="village-page-meta">
+              Page {summaryPage} of {summaryTotalPages}
+            </span>
+            <div className="village-page-actions flex flex-wrap items-center">
+              <button
+                onClick={() => setSummaryPage((p) => Math.max(1, p - 1))}
+                disabled={summaryPage === 1}
+                className="village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
+              >
+                Prev
+              </button>
+              <button
+                onClick={() => setSummaryPage((p) => Math.min(summaryTotalPages, p + 1))}
+                disabled={summaryPage === summaryTotalPages}
+                className="village-action-btn px-3 py-1 rounded-full border border-[#ead8c4] disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Manage admins modal */}

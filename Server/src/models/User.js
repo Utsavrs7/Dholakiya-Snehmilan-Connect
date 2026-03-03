@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     firstName: { type: String, trim: true },
     fatherName: { type: String, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true, index: true },
     mobile: { type: String, default: "", index: true },
     gender: { type: String, enum: ["Male", "Female"], default: "Male" },
     village: { type: String, default: "" },
@@ -33,6 +33,17 @@ const userSchema = new mongoose.Schema(
     tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
+);
+
+// Keep uniqueness scoped by role, not globally across all accounts.
+userSchema.index(
+  { role: 1, email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      email: { $type: "string", $ne: "" },
+    },
+  }
 );
 
 module.exports = mongoose.model("User", userSchema);
