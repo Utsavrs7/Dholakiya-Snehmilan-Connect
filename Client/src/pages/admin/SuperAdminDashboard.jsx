@@ -334,6 +334,12 @@ export default function SuperAdminDashboard() {
     () => new Set(VILLAGE_OPTIONS.filter((v) => v.value !== "other").map((v) => v.value)),
     []
   );
+  const toCanonicalMobile = (value = "") => {
+    const digits = String(value || "").replace(/\D/g, "");
+    if (digits.length === 10) return digits;
+    if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+    return "";
+  };
 
   // Fetch admin list on load
   useEffect(() => {
@@ -397,6 +403,18 @@ export default function SuperAdminDashboard() {
       if (adminForm.role === "village_admin" && !finalVillage.trim()) {
         throw new Error("Village is required for village admin.");
       }
+      const normalizedEmail = String(adminForm.email || "").trim().toLowerCase();
+      const normalizedMobile = toCanonicalMobile(adminForm.mobile);
+      if (normalizedMobile) {
+        const hasMobileDup = adminList.some(
+          (a) => toCanonicalMobile(a?.mobile) === normalizedMobile
+        );
+        if (hasMobileDup) throw new Error("Mobile already exists");
+      }
+      const hasEmailDup = adminList.some(
+        (a) => String(a?.email || "").trim().toLowerCase() === normalizedEmail
+      );
+      if (hasEmailDup) throw new Error("Email already exists");
       await superAdminFetch("/api/auth/admins", {
         method: "POST",
         headers: {
@@ -932,6 +950,23 @@ export default function SuperAdminDashboard() {
           color: #f3e8ff !important;
           border-color: #a855f7 !important;
         }
+        .admin-theme-dark .super-admin-page .super-admin-error {
+          background: rgba(127, 29, 29, 0.32) !important;
+          border-color: #ef4444 !important;
+          color: #fecaca !important;
+        }
+        .admin-theme-dark .super-admin-page .super-edit-modal {
+          background: linear-gradient(180deg, #1a2742 0%, #16233a 100%) !important;
+          border-color: #4f6692 !important;
+        }
+        .admin-theme-dark .super-admin-page .super-edit-modal h3,
+        .admin-theme-dark .super-admin-page .super-edit-modal p,
+        .admin-theme-dark .super-admin-page .super-edit-modal label {
+          color: #eef4ff !important;
+        }
+        .admin-theme-dark .super-admin-page .super-edit-modal svg {
+          color: #cfdcff !important;
+        }
         @media (max-width: 767px) {
           .super-admin-page .admin-card {
             border-radius: 1rem;
@@ -1376,7 +1411,7 @@ export default function SuperAdminDashboard() {
             style={{ backdropFilter: "blur(25px)" }}
             onClick={() => setIsEditOpen(false)}
           />
-          <div className="relative w-full max-w-2xl rounded-2xl md:rounded-3xl bg-gradient-to-br from-white/95 via-white/90 to-white/95 p-4 sm:p-6 md:p-10 shadow-2xl border border-white/20 backdrop-blur-xl animate-slideInUp max-h-[92vh] overflow-y-auto">
+          <div className="super-edit-modal relative w-full max-w-2xl rounded-2xl md:rounded-3xl bg-gradient-to-br from-white/95 via-white/90 to-white/95 p-4 sm:p-6 md:p-10 shadow-2xl border border-white/20 backdrop-blur-xl animate-slideInUp max-h-[92vh] overflow-y-auto">
             {/* Premium header */}
             <div className="flex items-center justify-between border-b border-[#ead8c4]/50 pb-6">
               <div className="flex items-center gap-4">
@@ -1497,7 +1532,7 @@ export default function SuperAdminDashboard() {
 
               {/* Error with premium styling */}
               {editError && (
-                <div className="md:col-span-2 bg-red-50 border border-red-200 rounded-2xl p-4">
+                <div className="super-admin-error md:col-span-2 bg-red-50 border border-red-200 rounded-2xl p-4">
                   <p className="text-sm text-red-700 font-medium">{editError}</p>
                 </div>
               )}
@@ -1888,7 +1923,7 @@ export default function SuperAdminDashboard() {
 
               {/* Error with premium styling */}
               {adminError && (
-                <div className="md:col-span-2 bg-red-50 border border-red-200 rounded-2xl p-4">
+                <div className="super-admin-error md:col-span-2 bg-red-50 border border-red-200 rounded-2xl p-4">
                   <p className="text-sm text-red-700 font-medium">{adminError}</p>
                 </div>
               )}

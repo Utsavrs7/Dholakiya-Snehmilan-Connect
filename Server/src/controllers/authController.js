@@ -373,6 +373,16 @@ const createAdmin = async (req, res, next) => {
 
     res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role });
   } catch (err) {
+    if (err?.code === 11000) {
+      const duplicateField = Object.keys(err?.keyPattern || err?.keyValue || {})[0] || "";
+      if (duplicateField === "mobile") {
+        return res.status(409).json({ message: "Mobile already exists" });
+      }
+      if (duplicateField === "email") {
+        return res.status(409).json({ message: "Email already exists" });
+      }
+      return res.status(409).json({ message: "Duplicate value already exists" });
+    }
     next(err);
   }
 };
@@ -869,6 +879,16 @@ const updateAdmin = async (req, res, next) => {
       mobile: updated.mobile,
     });
   } catch (err) {
+    if (err?.code === 11000) {
+      const duplicateField = Object.keys(err?.keyPattern || err?.keyValue || {})[0] || "";
+      if (duplicateField === "mobile") {
+        return res.status(409).json({ message: "Mobile already exists" });
+      }
+      if (duplicateField === "email") {
+        return res.status(409).json({ message: "Email already exists" });
+      }
+      return res.status(409).json({ message: "Duplicate value already exists" });
+    }
     next(err);
   }
 };

@@ -1267,6 +1267,12 @@ const buildExportPayload = (filters = exportFilters) => ({
   const isImageFile = (url = "") =>
     /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(url.split("?")[0]);
   const isPdfFile = (url = "") => /\.pdf$/i.test(url.split("?")[0]);
+  const toCanonicalMobile = (value = "") => {
+    const digits = String(value || "").replace(/\D/g, "");
+    if (digits.length === 10) return digits;
+    if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+    return "";
+  };
 
   const handleCreateAdmin = async (e) => {
     e.preventDefault();
@@ -1282,6 +1288,18 @@ const buildExportPayload = (filters = exportFilters) => ({
       if (adminForm.role === "village_admin" && !finalVillage.trim()) {
         throw new Error("Village is required for village admin.");
       }
+      const normalizedEmail = String(adminForm.email || "").trim().toLowerCase();
+      const normalizedMobile = toCanonicalMobile(adminForm.mobile);
+      if (normalizedMobile) {
+        const hasMobileDup = adminList.some(
+          (a) => toCanonicalMobile(a?.mobile) === normalizedMobile
+        );
+        if (hasMobileDup) throw new Error("Mobile already exists");
+      }
+      const hasEmailDup = adminList.some(
+        (a) => String(a?.email || "").trim().toLowerCase() === normalizedEmail
+      );
+      if (hasEmailDup) throw new Error("Email already exists");
       const token = getAdminTokenFor("super_admin");
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/admins`, {
         method: "POST",
