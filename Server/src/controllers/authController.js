@@ -212,6 +212,13 @@ const findUsersByNormalizedMobile = async (identifier) => {
   );
 };
 
+const buildAdminDuplicateMessage = ({ emailExists = false, mobileExists = false } = {}) => {
+  const messages = [];
+  if (mobileExists) messages.push("Mobile number is already exist");
+  if (emailExists) messages.push("Email already exists");
+  return messages.join("\n");
+};
+
 // User Signup (public)
 const register = async (req, res, next) => {
   try {
@@ -290,21 +297,31 @@ const register = async (req, res, next) => {
 const createSuperAdmin = async (req, res, next) => {
   try {
     const { name, email, password, mobile, village } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedMobile = toCanonicalIndianMobile(mobile);
     if (!email || !password) {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ message: "Email already exists" });
+    const emailExists = Boolean(await User.findOne({ email: normalizedEmail }));
+    const mobileExists = normalizedMobile
+      ? (await findUsersByNormalizedMobile(normalizedMobile)).length > 0
+      : false;
+    if (emailExists || mobileExists) {
+      return res.status(409).json({
+        message: buildAdminDuplicateMessage({ emailExists, mobileExists }),
+        errors: { email: emailExists, mobile: mobileExists },
+      });
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const safeName = (name || "Dholakiya Super Admin").trim();
     const user = await User.create({
       name: safeName,
-      email,
+      email: normalizedEmail,
       passwordHash,
       role: "super_admin",
-      mobile: mobile || "",
+      mobile: normalizedMobile || "",
       village: village || "",
     });
     emitAdminSessionUpdate({
@@ -316,6 +333,15 @@ const createSuperAdmin = async (req, res, next) => {
 
     res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role });
   } catch (err) {
+    if (err?.code === 11000) {
+      const duplicateField = Object.keys(err?.keyPattern || err?.keyValue || {})[0] || "";
+      const emailExists = duplicateField === "email";
+      const mobileExists = duplicateField === "mobile";
+      return res.status(409).json({
+        message: buildAdminDuplicateMessage({ emailExists, mobileExists }) || "Duplicate value already exists",
+        errors: { email: emailExists, mobile: mobileExists },
+      });
+    }
     next(err);
   }
 };
@@ -343,15 +369,15 @@ const createAdmin = async (req, res, next) => {
       return res.status(400).json({ message: "Village required for village admin" });
     }
 
-    const duplicateMessages = [];
-    const exists = await User.findOne({ email: normalizedEmail });
-    if (exists) duplicateMessages.push("Email already exists");
-    if (normalizedMobile) {
-      const mobileUsers = await findUsersByNormalizedMobile(normalizedMobile);
-      if (mobileUsers.length > 0) duplicateMessages.push("Mobile already exists");
-    }
-    if (duplicateMessages.length > 0) {
-      return res.status(409).json({ message: duplicateMessages.join("\n") });
+    const emailExists = Boolean(await User.findOne({ email: normalizedEmail }));
+    const mobileExists = normalizedMobile
+      ? (await findUsersByNormalizedMobile(normalizedMobile)).length > 0
+      : false;
+    if (emailExists || mobileExists) {
+      return res.status(409).json({
+        message: buildAdminDuplicateMessage({ emailExists, mobileExists }),
+        errors: { email: emailExists, mobile: mobileExists },
+      });
     }
 
     // Hash password and create admin
@@ -376,13 +402,12 @@ const createAdmin = async (req, res, next) => {
   } catch (err) {
     if (err?.code === 11000) {
       const duplicateField = Object.keys(err?.keyPattern || err?.keyValue || {})[0] || "";
-      if (duplicateField === "mobile") {
-        return res.status(409).json({ message: "Mobile already exists" });
-      }
-      if (duplicateField === "email") {
-        return res.status(409).json({ message: "Email already exists" });
-      }
-      return res.status(409).json({ message: "Duplicate value already exists" });
+      const emailExists = duplicateField === "email";
+      const mobileExists = duplicateField === "mobile";
+      return res.status(409).json({
+        message: buildAdminDuplicateMessage({ emailExists, mobileExists }) || "Duplicate value already exists",
+        errors: { email: emailExists, mobile: mobileExists },
+      });
     }
     next(err);
   }

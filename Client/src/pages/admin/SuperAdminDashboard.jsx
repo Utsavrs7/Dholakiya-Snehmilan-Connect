@@ -334,13 +334,6 @@ export default function SuperAdminDashboard() {
     () => new Set(VILLAGE_OPTIONS.filter((v) => v.value !== "other").map((v) => v.value)),
     []
   );
-  const toCanonicalMobile = (value = "") => {
-    const digits = String(value || "").replace(/\D/g, "");
-    if (digits.length === 10) return digits;
-    if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
-    return "";
-  };
-
   // Fetch admin list on load
   useEffect(() => {
     fetchAdmins();
@@ -402,22 +395,6 @@ export default function SuperAdminDashboard() {
           : "";
       if (adminForm.role === "village_admin" && !finalVillage.trim()) {
         throw new Error("Village is required for village admin.");
-      }
-      const normalizedEmail = String(adminForm.email || "").trim().toLowerCase();
-      const normalizedMobile = toCanonicalMobile(adminForm.mobile);
-      const duplicateErrors = [];
-      if (normalizedMobile) {
-        const hasMobileDup = adminList.some(
-          (a) => toCanonicalMobile(a?.mobile) === normalizedMobile
-        );
-        if (hasMobileDup) duplicateErrors.push("Mobile already exists");
-      }
-      const hasEmailDup = adminList.some(
-        (a) => String(a?.email || "").trim().toLowerCase() === normalizedEmail
-      );
-      if (hasEmailDup) duplicateErrors.push("Email already exists");
-      if (duplicateErrors.length) {
-        throw new Error(duplicateErrors.join("\n"));
       }
       await superAdminFetch("/api/auth/admins", {
         method: "POST",
