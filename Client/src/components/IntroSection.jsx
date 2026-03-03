@@ -37,7 +37,7 @@ export default function IntroSection() {
           animate={{ scale: 1.1 }}
           transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
           className="absolute inset-0 bg-cover bg-center opacity-100"
-          style={{ backgroundImage: "url('/Background Images/But-BhavaniMaa.jpg')" }}
+          style={{ backgroundImage: "url('/Background Images/Bg-1.jpg')" }}
         />
         {/* Gradient Overlay for Readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#fffcf5]/80 via-[#fffcf5]/50 to-transparent" />
