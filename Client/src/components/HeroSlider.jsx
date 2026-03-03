@@ -11,9 +11,9 @@ import "swiper/css/navigation";
 
 const fallbackImages = [
   { imageUrl: "/Background Images/Bg1.jpg" },
-  { imageUrl: "/Background Images/Bg2.jpg" },
-  { imageUrl: "/Background Images/Bg3.jpg" },
-  { imageUrl: "/Background Images/Bg4.jpg" },
+  { imageUrl: "/Background Images/Bg2.jpeg" },
+  { imageUrl: "/Background Images/Bg3.jpeg" },
+  { imageUrl: "/Background Images/Bg4.jpeg" },
   { imageUrl: "/Background Images/bg2.jpg" },
 ];
 const HERO_CACHE_KEY = "hero_slides";
