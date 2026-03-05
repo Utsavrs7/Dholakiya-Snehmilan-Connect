@@ -1,16 +1,32 @@
 <!doctype html>
 <html lang="gu">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <style>
+    @font-face {
+      font-family: "NotoSansGujarati";
+      src: url("<%= fontRegularFileUrl %>") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: "NotoSansGujarati";
+      src: url("<%= fontBoldFileUrl %>") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+
     @page { size: A4; margin: 16mm 12mm; }
-    body {
-      font-family: "Noto Sans Gujarati", "Noto Serif Gujarati", "Shruti", "Nirmala UI", sans-serif;
+
+    body, td, th, h1, h2, h3, div, span, p {
+      font-family: "NotoSansGujarati", sans-serif;
       color: #111;
       font-size: 12px;
       -webkit-font-smoothing: antialiased;
     }
+
     .header {
       border: 1px solid #cfcfcf;
       border-radius: 8px;
@@ -18,22 +34,26 @@
       padding: 10px 12px;
       margin-bottom: 14px;
     }
+
     .title {
       text-align: center;
       font-size: 22px;
       font-weight: 700;
       margin-bottom: 8px;
     }
+
     .meta {
       font-size: 11px;
       line-height: 1.45;
       word-break: break-word;
     }
+
     .std-block {
       margin-bottom: 14px;
       page-break-inside: avoid;
       break-inside: avoid;
     }
+
     .std-block h3 {
       margin: 0 0 6px 0;
       padding: 6px 8px;
@@ -43,23 +63,28 @@
       text-align: center;
       font-size: 14px;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
       page-break-inside: auto;
     }
+
     tbody { page-break-inside: auto; }
+
     tr {
       border-bottom: 1px solid #ececec;
       page-break-inside: avoid;
       page-break-after: auto;
     }
+
     td {
       padding: 5px 6px;
       vertical-align: top;
       word-wrap: break-word;
     }
+
     td.rank { width: 9%; }
     td.name { width: 71%; padding-right: 8px; }
     td.pct { width: 20%; text-align: right; white-space: nowrap; }
@@ -68,8 +93,8 @@
 </head>
 <body>
   <div class="header">
-    <div class="title">સ્નેહમિલન પરિણામ - <%= currentYear %></div>
-    <div class="meta">બનાવેલ તારીખ: <%= generatedAt %></div>
+    <div class="title">&#xAB8;&#xACD;&#xAA8;&#xAC7;&#xAB9;&#xAAE;&#xABF;&#xAB2;&#xAA8; &#xAAA;&#xAB0;&#xABF;&#xAA3;&#xABE;&#xAAE; - <%= currentYear %></div>
+    <div class="meta">&#xAAC;&#xAA8;&#xABE;&#xAB5;&#xAC7;&#xAB2; &#xAA4;&#xABE;&#xAB0;&#xAC0;&#xA96;: <%= generatedAt %></div>
     <div class="meta"><%= filterText %></div>
   </div>
 
@@ -81,7 +106,7 @@
           <% students.forEach((student) => { %>
             <tr class="<%= student.standardRank <= 3 ? 'top-rank' : '' %>">
               <td class="rank"><%= student.standardRank %>.</td>
-              <td class="name"><%= student.full_name %> (<%= student.village || "ઉપલબ્ધ નથી" %>)</td>
+              <td class="name"><%= student.full_name %> (<%= student.village || "\u0A89\u0AAA\u0AB2\u0AAC\u0ACD\u0AA7 \u0AA8\u0AA5\u0AC0" %>)</td>
               <td class="pct"><%= student.percentage %>%</td>
             </tr>
           <% }); %>

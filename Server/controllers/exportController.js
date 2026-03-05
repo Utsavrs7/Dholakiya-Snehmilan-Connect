@@ -48,7 +48,6 @@ const applyRankRange = (results, standard, percentageRange) => {
     // For a specific standard, apply directly on sorted filtered results.
     return filterByTieAwareRank(results);
 };
-
 const sortByStandardThenPercentageDesc = (items = []) =>
     items.sort((a, b) => {
         const standardCmp = String(a.standard || "").localeCompare(String(b.standard || ""), "en", {
@@ -144,6 +143,12 @@ const GUJARATI_STANDARD_LABEL = "\u0AA7\u0ACB\u0AB0\u0AA3 :-";
 const EXCEL_STANDARD_LABEL = "Standard :-";
 
 const PDF_TEMPLATE_PATH = path.join(__dirname, "..", "templates", "pdf", "report.ejs");
+const PDF_FONTS_DIR = path.join(__dirname, "..", "public", "fonts");
+
+const toFileUrl = (absolutePath) => {
+    const normalized = path.resolve(absolutePath).replace(/\\/g, "/");
+    return `file:///${normalized}`;
+};
 
 // Get filter options (unique values for standard, village, medium)
 exports.getFilterOptions = async (req, res) => {
@@ -337,7 +342,9 @@ exports.exportResults = async (req, res) => {
         else if (format === "pdf") {
             const currentYear = new Date().getFullYear();
             const generatedAt = new Date().toLocaleString();
-            const filterText = `ફિલ્ટર: ${standard || "બધા"} | ${medium || "બધા"} | ${village || "બધા"} | રેન્ક: ${percentageRange || "બધા"}`;
+            const filterText = `\u0AAB\u0ABF\u0AB2\u0ACD\u0A9F\u0AB0: ${standard || "\u0AAC\u0AA7\u0ABE"} | ${medium || "\u0AAC\u0AA7\u0ABE"} | ${village || "\u0AAC\u0AA7\u0ABE"} | \u0AB0\u0AC7\u0AA8\u0ACD\u0A95: ${percentageRange || "\u0AAC\u0AA7\u0ABE"}`;
+            const fontRegularFileUrl = toFileUrl(path.join(PDF_FONTS_DIR, "NotoSansGujarati-Regular.ttf"));
+            const fontBoldFileUrl = toFileUrl(path.join(PDF_FONTS_DIR, "NotoSansGujarati-Bold.ttf"));
             try {
                 const html = await ejs.renderFile(PDF_TEMPLATE_PATH, {
                     currentYear,
@@ -346,6 +353,8 @@ exports.exportResults = async (req, res) => {
                     groupedStandardResults,
                     getStandardDisplay,
                     standardLabel: GUJARATI_STANDARD_LABEL,
+                    fontRegularFileUrl,
+                    fontBoldFileUrl,
                 });
 
                 res.setHeader("Content-Type", "application/pdf");
@@ -362,6 +371,7 @@ exports.exportResults = async (req, res) => {
                     marginBottom: "12mm",
                     marginLeft: "10mm",
                     encoding: "UTF-8",
+                    enableLocalFileAccess: true,
                 });
 
                 pdfStream.on("error", () => {
@@ -383,10 +393,4 @@ exports.exportResults = async (req, res) => {
         res.status(500).json({ message: "Failed to export results." });
     }
 };
-
-
-
-
-
-
-
+ 
