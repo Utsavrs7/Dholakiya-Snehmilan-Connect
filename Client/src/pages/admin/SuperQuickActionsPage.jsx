@@ -1491,6 +1491,7 @@ const buildExportPayload = (filters = exportFilters) => ({
         .quick-export-format-btn:hover {
           transform: translateY(-1px);
           box-shadow: 0 8px 18px rgba(21, 128, 61, 0.12);
+          cursor: pointer;
         }
         .quick-export-format-btn-active {
           border-color: #15803d !important;
@@ -1514,6 +1515,7 @@ const buildExportPayload = (filters = exportFilters) => ({
         }
         .quick-export-cta:hover {
           transform: translateY(-1px);
+          cursor: pointer;
         }
         .admin-theme-dark .quick-page-root .quick-heading {
           color: #f3f7ff !important;
@@ -1915,31 +1917,38 @@ const buildExportPayload = (filters = exportFilters) => ({
           background: #223255 !important;
         }
         .admin-theme-dark .quick-page-root .quick-export-format-btn {
-          background: #1a2742 !important;
-          border-color: #4b5f86 !important;
-          color: #dbe7ff !important;
-          box-shadow: 0 8px 16px rgba(7, 14, 30, 0.35) !important;
+          background: linear-gradient(180deg, #1c2a47 0%, #16233c 100%) !important;
+          border-color: #5a74a7 !important;
+          color: #e4eeff !important;
+          box-shadow: 0 8px 16px rgba(7, 14, 30, 0.35), inset 0 1px 0 rgba(167, 195, 255, 0.08) !important;
         }
         .admin-theme-dark .quick-page-root .quick-export-format-btn:hover {
-          background: #223255 !important;
+          background: linear-gradient(180deg, #223255 0%, #1b2c4b 100%) !important;
+          border-color: #7f9dd6 !important;
+          transform: translateY(-1px) scale(1.01);
+          filter: brightness(1.06);
         }
         .admin-theme-dark .quick-page-root .quick-export-format-btn-active {
-          background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%) !important;
-          border-color: #93c5fd !important;
+          background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%) !important;
+          border-color: #bae6fd !important;
           color: #f8fbff !important;
-          box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.28), 0 12px 24px rgba(14, 116, 184, 0.45) !important;
+          box-shadow: 0 0 0 2px rgba(186, 230, 253, 0.35), 0 12px 24px rgba(8, 47, 73, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
         }
         .admin-theme-dark .quick-page-root .quick-export-cta-ghost {
-          background: #182540 !important;
-          border-color: #5f78a8 !important;
+          background: linear-gradient(180deg, #1a2a49 0%, #15223b 100%) !important;
+          border-color: #6f8ec7 !important;
           color: #dbe7ff !important;
-          box-shadow: 0 8px 16px rgba(7, 14, 30, 0.4) !important;
+          box-shadow: 0 8px 16px rgba(7, 14, 30, 0.4), inset 0 1px 0 rgba(167, 195, 255, 0.08) !important;
         }
         .admin-theme-dark .quick-page-root .quick-export-cta-primary {
-          background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%) !important;
-          border-color: #7dd3fc !important;
+          background: linear-gradient(135deg, #2563eb 0%, #0284c7 52%, #0ea5e9 100%) !important;
+          border: 1px solid rgba(186, 230, 253, 0.42) !important;
           color: #f8fbff !important;
-          box-shadow: 0 12px 22px rgba(3, 105, 161, 0.45) !important;
+          box-shadow: 0 12px 22px rgba(3, 105, 161, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-export-cta-ghost:hover,
+        .admin-theme-dark .quick-page-root .quick-export-cta-primary:hover {
+          filter: brightness(1.08);
         }
         .admin-theme-dark .quick-page-root .quick-export-panel table,
         .admin-theme-dark .quick-page-root .quick-export-panel thead,
