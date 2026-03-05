@@ -1481,6 +1481,40 @@ const buildExportPayload = (filters = exportFilters) => ({
         .quick-announcement-action-danger:hover {
           background: #ffe7e7 !important;
         }
+        .quick-export-format-btn {
+          border-color: #cde4d5 !important;
+          background: #ffffff !important;
+          color: #2f5f44 !important;
+          font-weight: 600;
+          box-shadow: 0 4px 10px rgba(21, 128, 61, 0.08);
+        }
+        .quick-export-format-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 18px rgba(21, 128, 61, 0.12);
+        }
+        .quick-export-format-btn-active {
+          border-color: #15803d !important;
+          background: linear-gradient(135deg, #166534 0%, #16a34a 100%) !important;
+          color: #f0fdf4 !important;
+          box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.22), 0 10px 20px rgba(22, 101, 52, 0.24);
+        }
+        .quick-export-cta {
+          font-weight: 600;
+          transition: all 180ms ease;
+        }
+        .quick-export-cta-ghost {
+          border: 1px solid #b7d9c3 !important;
+          background: linear-gradient(180deg, #ffffff 0%, #f3faf5 100%) !important;
+          color: #166534 !important;
+          box-shadow: 0 6px 14px rgba(21, 128, 61, 0.1);
+        }
+        .quick-export-cta-primary {
+          background: linear-gradient(135deg, #166534 0%, #16a34a 100%) !important;
+          box-shadow: 0 10px 20px rgba(22, 101, 52, 0.3);
+        }
+        .quick-export-cta:hover {
+          transform: translateY(-1px);
+        }
         .admin-theme-dark .quick-page-root .quick-heading {
           color: #f3f7ff !important;
         }
@@ -1879,6 +1913,33 @@ const buildExportPayload = (filters = exportFilters) => ({
         }
         .admin-theme-dark .quick-page-root .quick-export-panel button:hover {
           background: #223255 !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-export-format-btn {
+          background: #1a2742 !important;
+          border-color: #4b5f86 !important;
+          color: #dbe7ff !important;
+          box-shadow: 0 8px 16px rgba(7, 14, 30, 0.35) !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-export-format-btn:hover {
+          background: #223255 !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-export-format-btn-active {
+          background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%) !important;
+          border-color: #93c5fd !important;
+          color: #f8fbff !important;
+          box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.28), 0 12px 24px rgba(14, 116, 184, 0.45) !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-export-cta-ghost {
+          background: #182540 !important;
+          border-color: #5f78a8 !important;
+          color: #dbe7ff !important;
+          box-shadow: 0 8px 16px rgba(7, 14, 30, 0.4) !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-export-cta-primary {
+          background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%) !important;
+          border-color: #7dd3fc !important;
+          color: #f8fbff !important;
+          box-shadow: 0 12px 22px rgba(3, 105, 161, 0.45) !important;
         }
         .admin-theme-dark .quick-page-root .quick-export-panel table,
         .admin-theme-dark .quick-page-root .quick-export-panel thead,
@@ -2679,9 +2740,9 @@ const buildExportPayload = (filters = exportFilters) => ({
                     <button
                       type="button"
                       onClick={() => setExportFilters((p) => ({ ...p, format: "pdf" }))}
-                      className={`rounded-xl border px-3 py-2 text-sm ${exportFilters.format === "pdf"
-                        ? "border-[#15803d] bg-white text-[#166534]"
-                        : "border-[#cde4d5] bg-white text-[#2f5f44]"
+                      className={`quick-export-format-btn rounded-xl border px-3 py-2 text-sm transition-all ${exportFilters.format === "pdf"
+                        ? "quick-export-format-btn-active"
+                        : ""
                         }`}
                     >
                       <span className="inline-flex items-center gap-2">
@@ -2692,9 +2753,9 @@ const buildExportPayload = (filters = exportFilters) => ({
                     <button
                       type="button"
                       onClick={() => setExportFilters((p) => ({ ...p, format: "excel" }))}
-                      className={`rounded-xl border px-3 py-2 text-sm ${exportFilters.format === "excel"
-                        ? "border-[#15803d] bg-white text-[#166534]"
-                        : "border-[#cde4d5] bg-white text-[#2f5f44]"
+                      className={`quick-export-format-btn rounded-xl border px-3 py-2 text-sm transition-all ${exportFilters.format === "excel"
+                        ? "quick-export-format-btn-active"
+                        : ""
                         }`}
                     >
                       <span className="inline-flex items-center gap-2">
@@ -2763,7 +2824,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                     fetchExportPreview(exportFilters, 1);
                   }}
                   disabled={exportPreviewLoading}
-                  className="rounded-full border border-[#d4ebdc] bg-white px-4 py-2 text-sm text-[#166534] hover:shadow-sm disabled:opacity-60"
+                  className="quick-export-cta quick-export-cta-ghost rounded-full px-4 py-2 text-sm disabled:opacity-60"
                 >
                   {exportPreviewLoading ? "Loading Preview..." : "Preview Results"}
                 </button>
@@ -2771,7 +2832,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                   type="button"
                   onClick={handleExportDownload}
                   disabled={exportLoading}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#166534] px-5 py-2 text-sm text-white shadow-md disabled:opacity-70"
+                  className="quick-export-cta quick-export-cta-primary inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm text-white disabled:opacity-70"
                 >
                   <FaDownload className="text-xs" />
                   {exportLoading ? "Preparing File..." : "Download"}
