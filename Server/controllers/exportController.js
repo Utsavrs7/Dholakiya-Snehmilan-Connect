@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const ejs = require("ejs");
 const wkhtmltopdf = require("wkhtmltopdf");
 const Result = require("../src/models/Result");
@@ -143,6 +144,7 @@ const GUJARATI_STANDARD_LABEL = "\u0AA7\u0ACB\u0AB0\u0AA3 :-";
 const EXCEL_STANDARD_LABEL = "Standard :-";
 
 const PDF_TEMPLATE_PATH = path.join(__dirname, "..", "templates", "pdf", "report.ejs");
+const PDF_FONT_PATH = path.join(__dirname, "..", "assets", "fonts", "NotoSansGujarati-Regular.ttf");
 
 // Get filter options (unique values for standard, village, medium)
 exports.getFilterOptions = async (req, res) => {
@@ -337,6 +339,10 @@ exports.exportResults = async (req, res) => {
             const currentYear = new Date().getFullYear();
             const generatedAt = new Date().toLocaleString();
             const filterText = `\u0AAB\u0ABF\u0AB2\u0ACD\u0A9F\u0AB0: ${standard || "\u0AAC\u0AA7\u0ABE"} | ${medium || "\u0AAC\u0AA7\u0ABE"} | ${village || "\u0AAC\u0AA7\u0ABE"} | \u0AB0\u0AC7\u0AA8\u0ACD\u0A95: ${percentageRange || "\u0AAC\u0AA7\u0ABE"}`;
+            const fontPath = path.resolve(PDF_FONT_PATH);
+            if (!fs.existsSync(fontPath)) {
+                return res.status(500).json({ error: "Font file not found for PDF rendering." });
+            }
             try {
                 const html = await ejs.renderFile(PDF_TEMPLATE_PATH, {
                     currentYear,
@@ -345,6 +351,7 @@ exports.exportResults = async (req, res) => {
                     groupedStandardResults,
                     getStandardDisplay,
                     standardLabel: GUJARATI_STANDARD_LABEL,
+                    fontPath,
                 });
 
                 res.setHeader("Content-Type", "application/pdf");
@@ -353,9 +360,6 @@ exports.exportResults = async (req, res) => {
                     `attachment; filename=Snehmilan_${exportYear}.pdf`
                 );
 
-                // Render deployment note:
-                // Build Command should include:
-                // apt-get update && apt-get install -y fonts-noto fonts-noto-ui-core
                 const pdfStream = wkhtmltopdf(html, {
                     pageSize: "A4",
                     printMediaType: true,
