@@ -1548,6 +1548,22 @@ const buildExportPayload = (filters = exportFilters) => ({
           border-color: #3a4a6c !important;
           color: #deebff !important;
         }
+        .quick-error-banner {
+          border: 1px solid #fecaca;
+          background: #fef2f2;
+          color: #b91c1c;
+        }
+        .quick-error-text {
+          color: #dc2626;
+        }
+        .admin-theme-dark .quick-page-root .quick-error-banner {
+          border-color: #f87171 !important;
+          background: rgba(127, 29, 29, 0.35) !important;
+          color: #fee2e2 !important;
+        }
+        .admin-theme-dark .quick-page-root .quick-error-text {
+          color: #fecaca !important;
+        }
         .admin-theme-dark .quick-page-root .quick-admin-panel,
         .admin-theme-dark .quick-page-root .quick-admin-panel * {
           color: #e6efff !important;
@@ -2178,7 +2194,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                     </div>
                   )}
                   {adminError && (
-                    <div className="quick-admin-error md:col-span-2 whitespace-pre-line rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    <div className="quick-admin-error quick-error-banner md:col-span-2 whitespace-pre-line rounded-xl px-4 py-3 text-sm">
                       {adminError}
                     </div>
                   )}
@@ -2260,7 +2276,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                         )}
                         {adminListError && (
                           <tr>
-                            <td colSpan={7} className="px-4 py-4 text-sm text-red-600">
+                            <td colSpan={7} className="quick-error-text px-4 py-4 text-sm">
                               {adminListError}
                             </td>
                           </tr>
@@ -2462,7 +2478,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                         />
                       </div>
                       {editError && (
-                        <div className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                        <div className="quick-error-banner md:col-span-2 rounded-xl px-4 py-3 text-sm">
                           {editError}
                         </div>
                       )}
@@ -2521,7 +2537,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                     );
                   })}
                 </div>
-                {settingsError && <p className="mt-3 text-xs text-red-600">{settingsError}</p>}
+                {settingsError && <p className="quick-error-text mt-3 text-xs">{settingsError}</p>}
               </div>
 
               <div className="quick-form-surface quick-approval-shell rounded-2xl border border-[#ead8c4] p-5 md:p-6">
@@ -2586,7 +2602,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                       </div>
                     ))}
                 </div>
-                {pendingError && <p className="mt-3 text-xs text-red-600">{pendingError}</p>}
+                {pendingError && <p className="quick-error-text mt-3 text-xs">{pendingError}</p>}
               </div>
             </section>
           )}
@@ -2734,7 +2750,7 @@ const buildExportPayload = (filters = exportFilters) => ({
               </div>
 
               {exportError && (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="quick-error-banner mt-4 rounded-xl px-4 py-3 text-sm">
                   {exportError}
                 </div>
               )}
@@ -2922,7 +2938,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                   </p>
                 </div>
                 {galleryError && (
-                  <div className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <div className="quick-error-banner md:col-span-2 rounded-xl px-4 py-3 text-sm">
                     {galleryError}
                   </div>
                 )}
@@ -3245,7 +3261,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                   </select>
                 </div>
                 {heroError && (
-                  <div className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <div className="quick-error-banner md:col-span-2 rounded-xl px-4 py-3 text-sm">
                     {heroError}
                   </div>
                 )}
@@ -3513,7 +3529,7 @@ const buildExportPayload = (filters = exportFilters) => ({
                   </div>
                 )}
                 {announcementError && (
-                  <div className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <div className="quick-error-banner md:col-span-2 rounded-xl px-4 py-3 text-sm">
                     {announcementError}
                   </div>
                 )}

@@ -152,6 +152,16 @@ let cachedPuppeteer = null;
 let cachedBrowserPromise = null;
 let browserCleanupBound = false;
 
+const PDF_EXECUTABLE_CANDIDATES = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    process.env.CHROME_PATH,
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+].filter(Boolean);
+
 const closeCachedBrowser = async () => {
     if (!cachedBrowserPromise) return;
     try {
@@ -181,10 +191,35 @@ const bindBrowserCleanup = () => {
 const getPdfBrowser = async () => {
     if (!cachedPuppeteer) cachedPuppeteer = require("puppeteer");
     if (!cachedBrowserPromise) {
-        cachedBrowserPromise = cachedPuppeteer.launch({ headless: true });
+        cachedBrowserPromise = (async () => {
+            try {
+                return await cachedPuppeteer.launch({
+                    headless: true,
+                    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                });
+            } catch (launchError) {
+                for (const executablePath of PDF_EXECUTABLE_CANDIDATES) {
+                    try {
+                        return await cachedPuppeteer.launch({
+                            headless: true,
+                            executablePath,
+                            args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                        });
+                    } catch {
+                        // Try next executable candidate.
+                    }
+                }
+                throw launchError;
+            }
+        })();
         bindBrowserCleanup();
     }
-    return cachedBrowserPromise;
+    try {
+        return await cachedBrowserPromise;
+    } catch (error) {
+        cachedBrowserPromise = null;
+        throw error;
+    }
 };
 
 // Get filter options (unique values for standard, village, medium)
@@ -380,8 +415,11 @@ exports.exportResults = async (req, res) => {
             try {
                 await getPdfBrowser();
             } catch (depError) {
+                const details = depError?.message
+                    ? ` (${depError.message.split("\n")[0]})`
+                    : "";
                 return res.status(500).json({
-                    message: "PDF engine missing. Install with: npm i puppeteer (inside Server folder).",
+                    message: `PDF generation engine is unavailable. Ensure dependencies are installed in Server: npm i, then install browser with: npx puppeteer browsers install chrome${details}`,
                 });
             }
 
@@ -486,6 +524,9 @@ exports.exportResults = async (req, res) => {
                     format: "A4",
                     printBackground: true,
                     margin: { top: "12mm", right: "10mm", bottom: "12mm", left: "10mm" },
+                    tagged: false,
+                    outline: false,
+                    timeout: 45_000,
                 });
 
                 res.setHeader("Content-Type", "application/pdf");

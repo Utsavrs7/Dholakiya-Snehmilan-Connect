@@ -90,7 +90,11 @@ export default function ExportResultModal({ onClose }) {
 
                 {/* Body */}
                 <div className="p-6 overflow-y-auto space-y-4">
-                    {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+                    {error && (
+                        <div className="p-3 rounded-lg text-sm border border-red-200 bg-red-50 text-red-700 dark:border-red-400/60 dark:bg-red-950/35 dark:text-red-200">
+                            {error}
+                        </div>
+                    )}
 
                     {/* Filters Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
