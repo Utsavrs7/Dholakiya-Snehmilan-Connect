@@ -5,23 +5,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <style>
     @font-face {
-      font-family: "NotoSansGujarati";
-      src: url("<%= fontRegularFileUrl %>") format("truetype");
-      font-weight: 400;
-      font-style: normal;
-    }
-
-    @font-face {
-      font-family: "NotoSansGujarati";
-      src: url("<%= fontBoldFileUrl %>") format("truetype");
-      font-weight: 700;
-      font-style: normal;
+      font-family: "NotoGujarati";
+      src: url("<%= fontFileUrl %>") format("truetype");
     }
 
     @page { size: A4; margin: 16mm 12mm; }
 
-    body, td, th, h1, h2, h3, div, span, p {
-      font-family: "NotoSansGujarati", sans-serif;
+    body, table, td, th, h1, h2, h3, span, div {
+      font-family: "NotoGujarati";
       color: #111;
       font-size: 12px;
       -webkit-font-smoothing: antialiased;

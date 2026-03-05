@@ -1,4 +1,6 @@
 const path = require("path");
+const fs = require("fs");
+const { pathToFileURL } = require("url");
 const ejs = require("ejs");
 const wkhtmltopdf = require("wkhtmltopdf");
 const Result = require("../src/models/Result");
@@ -143,12 +145,7 @@ const GUJARATI_STANDARD_LABEL = "\u0AA7\u0ACB\u0AB0\u0AA3 :-";
 const EXCEL_STANDARD_LABEL = "Standard :-";
 
 const PDF_TEMPLATE_PATH = path.join(__dirname, "..", "templates", "pdf", "report.ejs");
-const PDF_FONTS_DIR = path.join(__dirname, "..", "public", "fonts");
-
-const toFileUrl = (absolutePath) => {
-    const normalized = path.resolve(absolutePath).replace(/\\/g, "/");
-    return `file:///${normalized}`;
-};
+const PDF_FONT_PATH = path.join(__dirname, "..", "assets", "fonts", "NotoSansGujarati-Regular.ttf");
 
 // Get filter options (unique values for standard, village, medium)
 exports.getFilterOptions = async (req, res) => {
@@ -343,8 +340,12 @@ exports.exportResults = async (req, res) => {
             const currentYear = new Date().getFullYear();
             const generatedAt = new Date().toLocaleString();
             const filterText = `\u0AAB\u0ABF\u0AB2\u0ACD\u0A9F\u0AB0: ${standard || "\u0AAC\u0AA7\u0ABE"} | ${medium || "\u0AAC\u0AA7\u0ABE"} | ${village || "\u0AAC\u0AA7\u0ABE"} | \u0AB0\u0AC7\u0AA8\u0ACD\u0A95: ${percentageRange || "\u0AAC\u0AA7\u0ABE"}`;
-            const fontRegularFileUrl = toFileUrl(path.join(PDF_FONTS_DIR, "NotoSansGujarati-Regular.ttf"));
-            const fontBoldFileUrl = toFileUrl(path.join(PDF_FONTS_DIR, "NotoSansGujarati-Bold.ttf"));
+            if (!fs.existsSync(PDF_FONT_PATH)) {
+                return res.status(500).json({
+                    message: "PDF font file missing. Expected: ./assets/fonts/NotoSansGujarati-Regular.ttf",
+                });
+            }
+            const fontFileUrl = pathToFileURL(PDF_FONT_PATH).href;
             try {
                 const html = await ejs.renderFile(PDF_TEMPLATE_PATH, {
                     currentYear,
@@ -353,8 +354,7 @@ exports.exportResults = async (req, res) => {
                     groupedStandardResults,
                     getStandardDisplay,
                     standardLabel: GUJARATI_STANDARD_LABEL,
-                    fontRegularFileUrl,
-                    fontBoldFileUrl,
+                    fontFileUrl,
                 });
 
                 res.setHeader("Content-Type", "application/pdf");
@@ -370,7 +370,7 @@ exports.exportResults = async (req, res) => {
                     marginRight: "10mm",
                     marginBottom: "12mm",
                     marginLeft: "10mm",
-                    encoding: "UTF-8",
+                    encoding: "utf-8",
                     enableLocalFileAccess: true,
                 });
 
