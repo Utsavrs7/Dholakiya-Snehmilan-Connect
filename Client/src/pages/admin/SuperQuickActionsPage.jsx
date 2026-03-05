@@ -1490,7 +1490,6 @@ const buildExportPayload = (filters = exportFilters) => ({
         }
         .quick-export-format-btn:hover {
           transform: translateY(-1px);
-          
           cursor: pointer;
         }
         .quick-export-format-btn-active {
@@ -1944,7 +1943,7 @@ const buildExportPayload = (filters = exportFilters) => ({
           background: linear-gradient(135deg, #2563eb 0%, #0284c7 52%, #0ea5e9 100%) !important;
           border: 1px solid rgba(186, 230, 253, 0.42) !important;
           color: #f8fbff !important;
-          box-shadow: 0 12px 22px rgba(3, 105, 161, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
         }
         .admin-theme-dark .quick-page-root .quick-export-cta-ghost:hover,
         .admin-theme-dark .quick-page-root .quick-export-cta-primary:hover {
