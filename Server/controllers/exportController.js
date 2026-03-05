@@ -1,4 +1,7 @@
-﻿const Result = require("../src/models/Result");
+const path = require("path");
+const ejs = require("ejs");
+const wkhtmltopdf = require("wkhtmltopdf");
+const Result = require("../src/models/Result");
 
 const applyRankRange = (results, standard, percentageRange) => {
     if (!percentageRange || percentageRange === "all") return results;
@@ -140,87 +143,7 @@ const groupByStandardInOrder = (items = []) => {
 const GUJARATI_STANDARD_LABEL = "\u0AA7\u0ACB\u0AB0\u0AA3 :-";
 const EXCEL_STANDARD_LABEL = "Standard :-";
 
-const escapeHtml = (value = "") =>
-    String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-
-let cachedPuppeteer = null;
-let cachedBrowserPromise = null;
-let browserCleanupBound = false;
-
-const PDF_EXECUTABLE_CANDIDATES = [
-    process.env.PUPPETEER_EXECUTABLE_PATH,
-    process.env.CHROME_PATH,
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium-browser",
-    "/usr/bin/chromium",
-].filter(Boolean);
-
-const closeCachedBrowser = async () => {
-    if (!cachedBrowserPromise) return;
-    try {
-        const browser = await cachedBrowserPromise;
-        if (browser) await browser.close();
-    } catch {
-        // Ignore browser close failures during process shutdown.
-    } finally {
-        cachedBrowserPromise = null;
-    }
-};
-
-const bindBrowserCleanup = () => {
-    if (browserCleanupBound) return;
-    browserCleanupBound = true;
-    process.once("beforeExit", closeCachedBrowser);
-    process.once("SIGINT", async () => {
-        await closeCachedBrowser();
-        process.exit(0);
-    });
-    process.once("SIGTERM", async () => {
-        await closeCachedBrowser();
-        process.exit(0);
-    });
-};
-
-const getPdfBrowser = async () => {
-    if (!cachedPuppeteer) cachedPuppeteer = require("puppeteer");
-    if (!cachedBrowserPromise) {
-        cachedBrowserPromise = (async () => {
-            try {
-                return await cachedPuppeteer.launch({
-                    headless: true,
-                    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-                });
-            } catch (launchError) {
-                for (const executablePath of PDF_EXECUTABLE_CANDIDATES) {
-                    try {
-                        return await cachedPuppeteer.launch({
-                            headless: true,
-                            executablePath,
-                            args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-                        });
-                    } catch {
-                        // Try next executable candidate.
-                    }
-                }
-                throw launchError;
-            }
-        })();
-        bindBrowserCleanup();
-    }
-    try {
-        return await cachedBrowserPromise;
-    } catch (error) {
-        cachedBrowserPromise = null;
-        throw error;
-    }
-};
+const PDF_TEMPLATE_PATH = path.join(__dirname, "..", "templates", "pdf", "report.ejs");
 
 // Get filter options (unique values for standard, village, medium)
 exports.getFilterOptions = async (req, res) => {
@@ -412,121 +335,17 @@ exports.exportResults = async (req, res) => {
 
         // --- PDF EXPORT ---
         else if (format === "pdf") {
-            try {
-                await getPdfBrowser();
-            } catch (depError) {
-                const details = depError?.message
-                    ? ` (${depError.message.split("\n")[0]})`
-                    : "";
-                return res.status(500).json({
-                    message: `PDF generation engine is unavailable. Ensure dependencies are installed in Server: npm i, then install browser with: npx puppeteer browsers install chrome${details}`,
-                });
-            }
-
             const currentYear = new Date().getFullYear();
             const generatedAt = new Date().toLocaleString();
             const filterText = `Filters: ${standard || "All"} | ${medium || "All"} | ${village || "All"} | Range: ${percentageRange || "All"}`;
-            const sectionsHtml = groupedStandardResults
-                .map(([std, students]) => {
-                    const rows = students
-                        .map((student) => {
-                            const boldClass = student.standardRank <= 3 ? "top-rank" : "";
-                            return `<tr class="${boldClass}">
-                                <td class="rank">${student.standardRank}.</td>
-                                <td class="name">${escapeHtml(student.full_name)}</td>
-                                <td class="pct">${escapeHtml(`${student.percentage}%`)}</td>
-                            </tr>`;
-                        })
-                        .join("");
-
-                    return `<section class="std-block">
-                        <h3>${escapeHtml(`${GUJARATI_STANDARD_LABEL} ${getStandardDisplay(std)}`)}</h3>
-                        <table>
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </section>`;
-                })
-                .join("");
-
-            const html = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <style>
-    @page { size: A4; margin: 16mm 12mm; }
-    body {
-      font-family: "Nirmala UI", "Shruti", "Noto Sans Gujarati", sans-serif;
-      color: #111;
-      font-size: 12px;
-    }
-    .header {
-      border: 1px solid #cfcfcf;
-      border-radius: 8px;
-      background: #f6f6f6;
-      padding: 10px 12px;
-      margin-bottom: 14px;
-    }
-    .title {
-      text-align: center;
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .meta {
-      font-size: 11px;
-      line-height: 1.45;
-    }
-    .std-block {
-      margin-bottom: 14px;
-      break-inside: avoid;
-    }
-    .std-block h3 {
-      margin: 0 0 6px 0;
-      padding: 6px 8px;
-      background: #f0f0f0;
-      border: 1px solid #dcdcdc;
-      border-radius: 6px;
-      text-align: center;
-      font-size: 14px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-    tr { border-bottom: 1px solid #ececec; }
-    td {
-      padding: 5px 6px;
-      vertical-align: top;
-    }
-    td.rank { width: 9%; }
-    td.name { width: 71%; padding-right: 8px; }
-    td.pct { width: 20%; text-align: right; white-space: nowrap; }
-    .top-rank td { font-weight: 700; }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div class="title">Snehmilan Results - ${currentYear}</div>
-    <div class="meta">Generated on: ${escapeHtml(generatedAt)}</div>
-    <div class="meta">${escapeHtml(filterText)}</div>
-  </div>
-  ${sectionsHtml}
-</body>
-</html>`;
-
-            const browser = await getPdfBrowser();
-            let page = null;
             try {
-                page = await browser.newPage();
-                await page.setContent(html, { waitUntil: "domcontentloaded" });
-                const pdfBuffer = await page.pdf({
-                    format: "A4",
-                    printBackground: true,
-                    margin: { top: "12mm", right: "10mm", bottom: "12mm", left: "10mm" },
-                    tagged: false,
-                    outline: false,
-                    timeout: 45_000,
+                const html = await ejs.renderFile(PDF_TEMPLATE_PATH, {
+                    currentYear,
+                    generatedAt,
+                    filterText,
+                    groupedStandardResults,
+                    getStandardDisplay,
+                    standardLabel: GUJARATI_STANDARD_LABEL,
                 });
 
                 res.setHeader("Content-Type", "application/pdf");
@@ -534,9 +353,27 @@ exports.exportResults = async (req, res) => {
                     "Content-Disposition",
                     `attachment; filename=Snehmilan_${exportYear}.pdf`
                 );
-                res.send(Buffer.from(pdfBuffer));
-            } finally {
-                if (page) await page.close();
+
+                const pdfStream = wkhtmltopdf(html, {
+                    pageSize: "A4",
+                    printMediaType: true,
+                    marginTop: "12mm",
+                    marginRight: "10mm",
+                    marginBottom: "12mm",
+                    marginLeft: "10mm",
+                    encoding: "UTF-8",
+                });
+
+                pdfStream.on("error", () => {
+                    if (!res.headersSent) {
+                        return res.status(500).json({ message: "Failed to generate PDF." });
+                    }
+                    res.destroy();
+                });
+
+                pdfStream.pipe(res);
+            } catch (pdfError) {
+                return res.status(500).json({ message: "Failed to generate PDF." });
             }
         } else {
             res.status(400).json({ message: "Invalid format specified." });
@@ -546,6 +383,8 @@ exports.exportResults = async (req, res) => {
         res.status(500).json({ message: "Failed to export results." });
     }
 };
+
+
 
 
 

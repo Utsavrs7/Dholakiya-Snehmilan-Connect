@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    @page { size: A4; margin: 16mm 12mm; }
+    body {
+      font-family: "Nirmala UI", "Shruti", "Noto Sans Gujarati", sans-serif;
+      color: #111;
+      font-size: 12px;
+    }
+    .header {
+      border: 1px solid #cfcfcf;
+      border-radius: 8px;
+      background: #f6f6f6;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .title {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .meta {
+      font-size: 11px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .std-block {
+      margin-bottom: 14px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .std-block h3 {
+      margin: 0 0 6px 0;
+      padding: 6px 8px;
+      background: #f0f0f0;
+      border: 1px solid #dcdcdc;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      page-break-inside: auto;
+    }
+    tbody { page-break-inside: auto; }
+    tr {
+      border-bottom: 1px solid #ececec;
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    td {
+      padding: 5px 6px;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+    td.rank { width: 9%; }
+    td.name { width: 71%; padding-right: 8px; }
+    td.pct { width: 20%; text-align: right; white-space: nowrap; }
+    .top-rank td { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Snehmilan Results - <%= currentYear %></div>
+    <div class="meta">Generated on: <%= generatedAt %></div>
+    <div class="meta"><%= filterText %></div>
+  </div>
+
+  <% groupedStandardResults.forEach(([std, students]) => { %>
+    <section class="std-block">
+      <h3><%= standardLabel %> <%= getStandardDisplay(std) %></h3>
+      <table>
+        <tbody>
+          <% students.forEach((student) => { %>
+            <tr class="<%= student.standardRank <= 3 ? 'top-rank' : '' %>">
+              <td class="rank"><%= student.standardRank %>.</td>
+              <td class="name"><%= student.full_name %></td>
+              <td class="pct"><%= student.percentage %>%</td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </section>
+  <% }); %>
+</body>
+</html>
