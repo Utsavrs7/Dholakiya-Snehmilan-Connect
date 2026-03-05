@@ -337,7 +337,7 @@ exports.exportResults = async (req, res) => {
         else if (format === "pdf") {
             const currentYear = new Date().getFullYear();
             const generatedAt = new Date().toLocaleString();
-            const filterText = `Filters: ${standard || "All"} | ${medium || "All"} | ${village || "All"} | Range: ${percentageRange || "All"}`;
+            const filterText = `ફિલ્ટર: ${standard || "બધા"} | ${medium || "બધા"} | ${village || "બધા"} | રેન્ક: ${percentageRange || "બધા"}`;
             try {
                 const html = await ejs.renderFile(PDF_TEMPLATE_PATH, {
                     currentYear,

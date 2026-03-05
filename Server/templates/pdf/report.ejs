@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="gu">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -64,20 +64,12 @@
     td.name { width: 71%; padding-right: 8px; }
     td.pct { width: 20%; text-align: right; white-space: nowrap; }
     .top-rank td { font-weight: 700; }
-    .student-name { display: block; }
-    .student-village {
-      display: block;
-      margin-top: 2px;
-      font-size: 10px;
-      color: #444;
-      font-weight: 500;
-    }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="title">Snehmilan Results - <%= currentYear %></div>
-    <div class="meta">Generated on: <%= generatedAt %></div>
+    <div class="title">સ્નેહમિલન પરિણામ - <%= currentYear %></div>
+    <div class="meta">બનાવેલ તારીખ: <%= generatedAt %></div>
     <div class="meta"><%= filterText %></div>
   </div>
 
@@ -89,10 +81,7 @@
           <% students.forEach((student) => { %>
             <tr class="<%= student.standardRank <= 3 ? 'top-rank' : '' %>">
               <td class="rank"><%= student.standardRank %>.</td>
-              <td class="name">
-                <span class="student-name"><%= student.full_name %></span>
-                <span class="student-village">Village: <%= student.village || "N/A" %></span>
-              </td>
+              <td class="name"><%= student.full_name %> (<%= student.village || "ઉપલબ્ધ નથી" %>)</td>
               <td class="pct"><%= student.percentage %>%</td>
             </tr>
           <% }); %>
