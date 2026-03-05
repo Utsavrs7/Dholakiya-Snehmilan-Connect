@@ -1490,7 +1490,7 @@ const buildExportPayload = (filters = exportFilters) => ({
         }
         .quick-export-format-btn:hover {
           transform: translateY(-1px);
-          box-shadow: 0 8px 18px rgba(21, 128, 61, 0.12);
+          
           cursor: pointer;
         }
         .quick-export-format-btn-active {
