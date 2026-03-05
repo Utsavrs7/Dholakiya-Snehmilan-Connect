@@ -336,14 +336,15 @@ exports.exportResults = async (req, res) => {
 
         // --- PDF EXPORT ---
         else if (format === "pdf") {
-            const currentYear = new Date().getFullYear();
-            const generatedAt = new Date().toLocaleString();
-            const filterText = `\u0AAB\u0ABF\u0AB2\u0ACD\u0A9F\u0AB0: ${standard || "\u0AAC\u0AA7\u0ABE"} | ${medium || "\u0AAC\u0AA7\u0ABE"} | ${village || "\u0AAC\u0AA7\u0ABE"} | \u0AB0\u0AC7\u0AA8\u0ACD\u0A95: ${percentageRange || "\u0AAC\u0AA7\u0ABE"}`;
-            const fontPath = path.resolve(PDF_FONT_PATH);
-            if (!fs.existsSync(fontPath)) {
-                return res.status(500).json({ error: "Font file not found for PDF rendering." });
-            }
             try {
+                const currentYear = new Date().getFullYear();
+                const generatedAt = new Date().toLocaleString();
+                const filterText = `\u0AAB\u0ABF\u0AB2\u0ACD\u0A9F\u0AB0: ${standard || "\u0AAC\u0AA7\u0ABE"} | ${medium || "\u0AAC\u0AA7\u0ABE"} | ${village || "\u0AAC\u0AA7\u0ABE"} | \u0AB0\u0AC7\u0AA8\u0ACD\u0A95: ${percentageRange || "\u0AAC\u0AA7\u0ABE"}`;
+                const fontPath = path.resolve(PDF_FONT_PATH);
+                if (!fs.existsSync(fontPath)) {
+                    throw new Error("Font file not found for PDF rendering.");
+                }
+
                 const html = await ejs.renderFile(PDF_TEMPLATE_PATH, {
                     currentYear,
                     generatedAt,
@@ -360,6 +361,8 @@ exports.exportResults = async (req, res) => {
                     `attachment; filename=Snehmilan_${exportYear}.pdf`
                 );
 
+                console.log("Font path:", fontPath);
+                console.log("Generating PDF...");
                 const pdfStream = wkhtmltopdf(html, {
                     pageSize: "A4",
                     printMediaType: true,
@@ -371,16 +374,20 @@ exports.exportResults = async (req, res) => {
                     enableLocalFileAccess: true,
                 });
 
-                pdfStream.on("error", () => {
+                pdfStream.on("error", (error) => {
+                    console.error("PDF ERROR:", error);
+                    console.error("Stack:", error?.stack);
                     if (!res.headersSent) {
-                        return res.status(500).json({ message: "Failed to generate PDF." });
+                        return res.status(500).json({ error: error.message });
                     }
                     res.destroy();
                 });
 
                 pdfStream.pipe(res);
-            } catch (pdfError) {
-                return res.status(500).json({ message: "Failed to generate PDF." });
+            } catch (error) {
+                console.error("PDF ERROR:", error);
+                console.error("Stack:", error.stack);
+                return res.status(500).json({ error: error.message });
             }
         } else {
             res.status(400).json({ message: "Invalid format specified." });
