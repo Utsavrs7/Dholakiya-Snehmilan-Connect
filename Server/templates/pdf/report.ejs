@@ -2,12 +2,14 @@
 <html>
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <style>
     @page { size: A4; margin: 16mm 12mm; }
     body {
-      font-family: "Nirmala UI", "Shruti", "Noto Sans Gujarati", sans-serif;
+      font-family: "Noto Sans Gujarati", "Noto Serif Gujarati", "Shruti", "Nirmala UI", sans-serif;
       color: #111;
       font-size: 12px;
+      -webkit-font-smoothing: antialiased;
     }
     .header {
       border: 1px solid #cfcfcf;
@@ -62,6 +64,14 @@
     td.name { width: 71%; padding-right: 8px; }
     td.pct { width: 20%; text-align: right; white-space: nowrap; }
     .top-rank td { font-weight: 700; }
+    .student-name { display: block; }
+    .student-village {
+      display: block;
+      margin-top: 2px;
+      font-size: 10px;
+      color: #444;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -79,7 +89,10 @@
           <% students.forEach((student) => { %>
             <tr class="<%= student.standardRank <= 3 ? 'top-rank' : '' %>">
               <td class="rank"><%= student.standardRank %>.</td>
-              <td class="name"><%= student.full_name %></td>
+              <td class="name">
+                <span class="student-name"><%= student.full_name %></span>
+                <span class="student-village">Village: <%= student.village || "N/A" %></span>
+              </td>
               <td class="pct"><%= student.percentage %>%</td>
             </tr>
           <% }); %>
