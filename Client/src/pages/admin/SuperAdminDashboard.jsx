@@ -349,6 +349,19 @@ export default function SuperAdminDashboard() {
     () => new Set(VILLAGE_OPTIONS.filter((v) => v.value !== "other").map((v) => v.value)),
     []
   );
+  const occupiedVillageValues = useMemo(() => {
+    const normalize = (value) => String(value || "").trim().toLowerCase();
+    const usedVillages = new Set(
+      adminList
+        .filter((a) => a.role === "village_admin" && String(a.village || "").trim())
+        .map((a) => normalize(a.village))
+    );
+    return new Set(
+      VILLAGE_OPTIONS.filter((v) => v.value !== "other")
+        .map((v) => v.value)
+        .filter((v) => usedVillages.has(normalize(v)))
+    );
+  }, [adminList]);
   // Fetch admin list on load
   useEffect(() => {
     fetchAdmins();
@@ -410,6 +423,9 @@ export default function SuperAdminDashboard() {
           : "";
       if (adminForm.role === "village_admin" && !finalVillage.trim()) {
         throw new Error("Village is required for village admin.");
+      }
+      if (adminForm.role === "village_admin" && occupiedVillageValues.has(finalVillage)) {
+        throw new Error("Village admin already exists for this village.");
       }
       await superAdminFetch("/api/auth/admins", {
         method: "POST",
@@ -1067,7 +1083,7 @@ export default function SuperAdminDashboard() {
           <div className="mt-4 grid grid-cols-2 gap-3">
             {/* Manage admin action */}
             <button
-              onClick={() => navigate("/admin/super/actions?tab=admins&action=manage-admins")}
+              onClick={() => navigate("/admin/super/actions?tab=admins&action=manage-admins#manage-admins")}
               className="admin-card rounded-xl bg-[#fff6e5] px-3 py-3 md:py-4 text-xs md:text-sm text-[#7a1f1f] hover:shadow-md transition"
             >
               Manage Admins
@@ -1918,11 +1934,14 @@ export default function SuperAdminDashboard() {
                     className="mt-3 w-full rounded-2xl border border-[#ead8c4]/70 bg-gradient-to-r from-[#fcfbf9] to-[#faf8f5] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7a1f1f]/30 focus:border-[#7a1f1f]/50 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     <option value="">Select Village</option>
-                    {VILLAGE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
+                    {VILLAGE_OPTIONS.map((opt) => {
+                      const isDisabled = opt.value !== "other" && occupiedVillageValues.has(opt.value);
+                      return (
+                        <option key={opt.value} value={opt.value} disabled={isDisabled}>
+                          {isDisabled ? `${opt.label} (Assigned)` : opt.label}
+                        </option>
+                      );
+                    })}
                   </select>
                   {adminForm.village === "other" && (
                     <input

@@ -40,11 +40,12 @@ const hashOtp = (otp) => crypto.createHash("sha256").update(String(otp)).digest(
 const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 const hashRefreshToken = (token) =>
   crypto.createHash("sha256").update(String(token || "")).digest("hex");
+const normalizeVillage = (value) => String(value || "").trim().toLowerCase();
 
 const getRefreshTokenTtlMs = (role, rememberMe) => {
   if (role === "super_admin") return 3 * 24 * 60 * 60 * 1000;
   if (role === "village_admin") return 7 * 24 * 60 * 60 * 1000;
-  return rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+  return rememberMe ? 15 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
 };
 
 const getRefreshCookieOptions = (maxAgeMs = 0) => ({
@@ -371,6 +372,16 @@ const createAdmin = async (req, res, next) => {
     // Village is required for village_admin
     if (role === "village_admin" && !village) {
       return res.status(400).json({ message: "Village required for village admin" });
+    }
+    const normalizedVillage = normalizeVillage(village);
+    if (role === "village_admin") {
+      const existingVillageAdmins = await User.find({ role: "village_admin" }).select("_id village");
+      const sameVillageExists = existingVillageAdmins.some(
+        (item) => normalizeVillage(item.village) === normalizedVillage
+      );
+      if (sameVillageExists) {
+        return res.status(409).json({ message: "Village admin already exists for this village" });
+      }
     }
 
     const emailExists = Boolean(await User.findOne({ email: normalizedEmail, role: { $in: ADMIN_ROLES } }));
@@ -738,17 +749,17 @@ const refreshSession = async (req, res, next) => {
     const cookies = parseCookies(req);
     const incomingRefreshToken = cookies[REFRESH_COOKIE_NAME];
     if (!incomingRefreshToken) {
-      return res.status(401).json({ message: "Refresh token missing" });
+      return res.status(401).json({ message: "Session expired. Please login again." });
     }
 
     let decoded;
     try {
       decoded = jwt.verify(incomingRefreshToken, REFRESH_TOKEN_SECRET);
     } catch {
-      return res.status(401).json({ message: "Invalid refresh token" });
+      return res.status(401).json({ message: "Session expired. Please login again." });
     }
     if (decoded?.type !== "refresh" || !decoded?.sub) {
-      return res.status(401).json({ message: "Invalid refresh token" });
+      return res.status(401).json({ message: "Session expired. Please login again." });
     }
 
     const tokenHash = hashRefreshToken(incomingRefreshToken);
@@ -762,7 +773,7 @@ const refreshSession = async (req, res, next) => {
       $set: { revokedAt: now },
     }, { new: true });
     if (!existing) {
-      return res.status(401).json({ message: "Refresh token expired or revoked" });
+      return res.status(401).json({ message: "Session expired. Please login again." });
     }
 
     const user = await User.findById(decoded.sub).select(
@@ -771,13 +782,13 @@ const refreshSession = async (req, res, next) => {
     if (!user) {
       await RefreshToken.deleteMany({ userId: decoded.sub });
       res.clearCookie(REFRESH_COOKIE_NAME, getRefreshCookieOptions(0));
-      return res.status(401).json({ message: "Account not found" });
+      return res.status(401).json({ message: "Session expired. Please login again." });
     }
 
     if (Number(decoded.tokenVersion ?? -1) !== Number(user.tokenVersion ?? 0)) {
       await RefreshToken.deleteMany({ userId: user._id });
       res.clearCookie(REFRESH_COOKIE_NAME, getRefreshCookieOptions(0));
-      return res.status(401).json({ message: "Session invalidated. Please login again." });
+      return res.status(401).json({ message: "Session expired. Please login again." });
     }
 
     const rememberMe = Boolean(existing.rememberMe);
@@ -883,6 +894,8 @@ const updateAdmin = async (req, res, next) => {
 
     const nextEmail = email !== undefined ? String(email || "").trim().toLowerCase() : admin.email;
     const nextMobile = mobile !== undefined ? toCanonicalIndianMobile(mobile) : admin.mobile;
+    const nextRole = role !== undefined ? role : admin.role;
+    const nextVillage = village !== undefined ? String(village || "").trim() : String(admin.village || "").trim();
     const emailExists = Boolean(
       await User.findOne({
         _id: { $ne: admin._id },
@@ -902,12 +915,27 @@ const updateAdmin = async (req, res, next) => {
         errors: { email: emailExists, mobile: mobileExists },
       });
     }
+    if (nextRole === "village_admin") {
+      if (!nextVillage) {
+        return res.status(400).json({ message: "Village required for village admin" });
+      }
+      const allVillageAdmins = await User.find({
+        _id: { $ne: admin._id },
+        role: "village_admin",
+      }).select("_id village");
+      const villageTaken = allVillageAdmins.some(
+        (item) => normalizeVillage(item.village) === normalizeVillage(nextVillage)
+      );
+      if (villageTaken) {
+        return res.status(409).json({ message: "Village admin already exists for this village" });
+      }
+    }
 
     if (name !== undefined) admin.name = name;
     if (email !== undefined) admin.email = nextEmail;
     if (mobile !== undefined) admin.mobile = nextMobile || "";
-    if (village !== undefined) admin.village = village;
-    if (role !== undefined) admin.role = role;
+    if (village !== undefined) admin.village = nextVillage;
+    if (role !== undefined) admin.role = nextRole;
     if (password) {
       admin.passwordHash = await bcrypt.hash(password, 10);
     }

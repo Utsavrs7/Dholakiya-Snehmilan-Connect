@@ -297,6 +297,8 @@ export default function SuperQuickActionsPage() {
   const exportVillageRef = useRef(null);
   const exportRangeFromRef = useRef(null);
   const exportRangeToRef = useRef(null);
+  const manageAdminsSectionRef = useRef(null);
+  const editAdminFormRef = useRef(null);
   const [heroItems, setHeroItems] = useState([]);
   const [heroLoading, setHeroLoading] = useState(false);
   const [heroError, setHeroError] = useState("");
@@ -382,6 +384,19 @@ export default function SuperQuickActionsPage() {
     () => new Set(VILLAGE_OPTIONS.filter((v) => v.value !== "other").map((v) => v.value)),
     []
   );
+  const occupiedVillageValues = useMemo(() => {
+    const normalize = (value) => String(value || "").trim().toLowerCase();
+    const usedVillages = new Set(
+      adminList
+        .filter((a) => a.role === "village_admin" && String(a.village || "").trim())
+        .map((a) => normalize(a.village))
+    );
+    return new Set(
+      VILLAGE_OPTIONS.filter((v) => v.value !== "other")
+        .map((v) => v.value)
+        .filter((v) => usedVillages.has(normalize(v)))
+    );
+  }, [adminList]);
   const exportFilterOptions = useMemo(
     () => ({
       standards: EXPORT_STANDARD_OPTIONS,
@@ -395,6 +410,21 @@ export default function SuperQuickActionsPage() {
     if (!isManageAdmins) return;
     fetchAdmins();
   }, [isManageAdmins]);
+
+  useEffect(() => {
+    if (selectedAction.key !== "admins") return;
+    fetchAdmins();
+  }, [selectedAction.key]);
+
+  useEffect(() => {
+    if (!isManageAdmins || !manageAdminsSectionRef.current) return;
+    manageAdminsSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [isManageAdmins]);
+
+  useEffect(() => {
+    if (!editForm || !editAdminFormRef.current) return;
+    editAdminFormRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [editForm]);
 
   useEffect(() => {
     fetchPendingUsers();
@@ -1281,6 +1311,9 @@ const buildExportPayload = (filters = exportFilters) => ({
           : "";
       if (adminForm.role === "village_admin" && !finalVillage.trim()) {
         throw new Error("Village is required for village admin.");
+      }
+      if (adminForm.role === "village_admin" && occupiedVillageValues.has(finalVillage)) {
+        throw new Error("Village admin already exists for this village.");
       }
       const token = getAdminTokenFor("super_admin");
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/admins`, {
@@ -2244,11 +2277,15 @@ const buildExportPayload = (filters = exportFilters) => ({
                         className="mt-2 w-full rounded-2xl border border-[#ead8c4] bg-[#fffaf4] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7a1f1f]/30"
                       >
                         <option value="">Select Village</option>
-                        {VILLAGE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
+                        {VILLAGE_OPTIONS.map((opt) => {
+                          const isDisabled =
+                            opt.value !== "other" && occupiedVillageValues.has(opt.value);
+                          return (
+                            <option key={opt.value} value={opt.value} disabled={isDisabled}>
+                              {isDisabled ? `${opt.label} (Assigned)` : opt.label}
+                            </option>
+                          );
+                        })}
                       </select>
                       {adminForm.village === "other" && (
                         <input
@@ -2280,7 +2317,7 @@ const buildExportPayload = (filters = exportFilters) => ({
               )}
 
               {isManageAdmins && (
-                <div className="mt-5">
+                <div ref={manageAdminsSectionRef} className="mt-5">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div className="relative flex-1 md:max-w-md">
                       <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7a1f1f]/60" />
@@ -2433,6 +2470,7 @@ const buildExportPayload = (filters = exportFilters) => ({
 
                   {editForm && (
                     <form
+                      ref={editAdminFormRef}
                       onSubmit={handleUpdateAdmin}
                       className="quick-edit-form mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-[#ead8c4] bg-[#fffaf4] p-5"
                     >

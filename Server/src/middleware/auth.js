@@ -37,7 +37,14 @@ const authRequired = async (req, res, next) => {
     };
     next();
   } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
+    const isJwtError =
+      err?.name === "TokenExpiredError" ||
+      err?.name === "JsonWebTokenError" ||
+      err?.name === "NotBeforeError";
+    if (isJwtError) {
+      return res.status(401).json({ message: "Session expired. Please login again." });
+    }
+    return res.status(401).json({ message: "Session expired. Please login again." });
   }
 };
 
