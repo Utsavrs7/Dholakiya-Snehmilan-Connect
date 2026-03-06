@@ -90,7 +90,7 @@ export default function FooterSection() {
         </div>
 
         <div className="mt-6 pt-3 border-t border-white/20 text-sm text-white/70 flex flex-col md:flex-row justify-between gap-2">
-          <span>© {year} Dholakiya Parivar. All rights reserved.</span>
+          <span>Â© {year} Dholakiya Parivar. All rights reserved.</span>
           <span>Design by Leo Infotech</span>
         </div>
       </div>
