@@ -362,6 +362,13 @@ export default function SuperAdminDashboard() {
         .filter((v) => usedVillages.has(normalize(v)))
     );
   }, [adminList]);
+  const orderedVillageOptions = useMemo(() => {
+    const base = VILLAGE_OPTIONS.filter((opt) => opt.value !== "other");
+    const unassigned = base.filter((opt) => !occupiedVillageValues.has(opt.value));
+    const assigned = base.filter((opt) => occupiedVillageValues.has(opt.value));
+    const other = VILLAGE_OPTIONS.find((opt) => opt.value === "other");
+    return other ? [...unassigned, ...assigned, other] : [...unassigned, ...assigned];
+  }, [occupiedVillageValues]);
   // Fetch admin list on load
   useEffect(() => {
     fetchAdmins();
@@ -1934,11 +1941,11 @@ export default function SuperAdminDashboard() {
                     className="mt-3 w-full rounded-2xl border border-[#ead8c4]/70 bg-gradient-to-r from-[#fcfbf9] to-[#faf8f5] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7a1f1f]/30 focus:border-[#7a1f1f]/50 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     <option value="">Select Village</option>
-                    {VILLAGE_OPTIONS.map((opt) => {
+                    {orderedVillageOptions.map((opt) => {
                       const isDisabled = opt.value !== "other" && occupiedVillageValues.has(opt.value);
                       return (
                         <option key={opt.value} value={opt.value} disabled={isDisabled}>
-                          {isDisabled ? `${opt.label} (Assigned)` : opt.label}
+                          {isDisabled ? `🚫 ${opt.label} (Assigned)` : opt.label}
                         </option>
                       );
                     })}

@@ -397,6 +397,13 @@ export default function SuperQuickActionsPage() {
         .filter((v) => usedVillages.has(normalize(v)))
     );
   }, [adminList]);
+  const orderedVillageOptions = useMemo(() => {
+    const base = VILLAGE_OPTIONS.filter((opt) => opt.value !== "other");
+    const unassigned = base.filter((opt) => !occupiedVillageValues.has(opt.value));
+    const assigned = base.filter((opt) => occupiedVillageValues.has(opt.value));
+    const other = VILLAGE_OPTIONS.find((opt) => opt.value === "other");
+    return other ? [...unassigned, ...assigned, other] : [...unassigned, ...assigned];
+  }, [occupiedVillageValues]);
   const exportFilterOptions = useMemo(
     () => ({
       standards: EXPORT_STANDARD_OPTIONS,
@@ -2277,12 +2284,12 @@ const buildExportPayload = (filters = exportFilters) => ({
                         className="mt-2 w-full rounded-2xl border border-[#ead8c4] bg-[#fffaf4] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7a1f1f]/30"
                       >
                         <option value="">Select Village</option>
-                        {VILLAGE_OPTIONS.map((opt) => {
+                        {orderedVillageOptions.map((opt) => {
                           const isDisabled =
                             opt.value !== "other" && occupiedVillageValues.has(opt.value);
                           return (
                             <option key={opt.value} value={opt.value} disabled={isDisabled}>
-                              {isDisabled ? `${opt.label} (Assigned)` : opt.label}
+                              {isDisabled ? `🚫 ${opt.label} (Assigned)` : opt.label}
                             </option>
                           );
                         })}
