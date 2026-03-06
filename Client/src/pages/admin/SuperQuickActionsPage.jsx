@@ -1355,7 +1355,19 @@ const buildExportPayload = (filters = exportFilters) => ({
         villageOther: "",
         role: "village_admin",
       });
-      if (isManageAdmins) fetchAdmins();
+      const createdAdmin = {
+        ...data,
+        village: finalVillage,
+        mobile: adminForm.mobile || "",
+      };
+      setAdminList((prev) => {
+        const createdId = createdAdmin._id || createdAdmin.id;
+        if (!createdId) return [createdAdmin, ...prev];
+        const existingIndex = prev.findIndex((item) => (item._id || item.id) === createdId);
+        if (existingIndex === -1) return [createdAdmin, ...prev];
+        return prev.map((item, index) => (index === existingIndex ? { ...item, ...createdAdmin } : item));
+      });
+      fetchAdmins();
     } catch (err) {
       setAdminError(err.message);
     } finally {
