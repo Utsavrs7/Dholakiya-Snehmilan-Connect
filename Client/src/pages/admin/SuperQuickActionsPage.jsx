@@ -2560,11 +2560,15 @@ const buildExportPayload = (filters = exportFilters) => ({
                           className="mt-2 w-full rounded-2xl border border-[#ead8c4] bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7a1f1f]/30"
                         >
                           <option value="">Select Village</option>
-                          {VILLAGE_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
+                          {orderedVillageOptions.map((opt) => {
+                            const isDisabled =
+                              opt.value !== "other" && occupiedVillageValues.has(opt.value);
+                            return (
+                              <option key={opt.value} value={opt.value} disabled={isDisabled}>
+                                {isDisabled ? `🚫 ${opt.label} (Assigned)` : opt.label}
+                              </option>
+                            );
+                          })}
                         </select>
                         {editForm.village === "other" && (
                           <input
