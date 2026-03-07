@@ -281,8 +281,9 @@ export default function SuperAdminDashboard() {
   }, [villageOptions, summaryPage]);
 
   useEffect(() => {
+    if (villageOptions.length === 0) return;
     setSummaryPage((prev) => Math.min(prev, summaryTotalPages));
-  }, [summaryTotalPages]);
+  }, [summaryTotalPages, villageOptions.length]);
 
   const yearOptions = useMemo(() => {
     const years = new Set([currentYear]);
