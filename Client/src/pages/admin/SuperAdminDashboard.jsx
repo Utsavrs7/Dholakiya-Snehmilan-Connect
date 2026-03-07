@@ -133,6 +133,7 @@ export default function SuperAdminDashboard() {
     try {
       const routeState = location.state?.returnState;
       if (routeState) {
+        if (Number.isFinite(routeState.summaryPage)) setSummaryPage(routeState.summaryPage);
         if (typeof routeState.selectedVillage === "string") {
           setSelectedVillage(routeState.selectedVillage);
           setShowVillageResultsPanel(Boolean(routeState.selectedVillage));
@@ -152,6 +153,7 @@ export default function SuperAdminDashboard() {
       const raw = sessionStorage.getItem(DASHBOARD_STATE_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
+      if (Number.isFinite(saved.summaryPage)) setSummaryPage(saved.summaryPage);
       if (typeof saved.selectedVillage === "string") {
         setSelectedVillage(saved.selectedVillage);
         setShowVillageResultsPanel(Boolean(saved.selectedVillage));
@@ -173,6 +175,7 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     const payload = {
+      summaryPage,
       selectedVillage,
       showVillageResultsPanel,
       villagePage,
@@ -185,6 +188,7 @@ export default function SuperAdminDashboard() {
     };
     sessionStorage.setItem(DASHBOARD_STATE_KEY, JSON.stringify(payload));
   }, [
+    summaryPage,
     selectedVillage,
     showVillageResultsPanel,
     villagePage,
