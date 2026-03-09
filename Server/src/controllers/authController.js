@@ -13,6 +13,9 @@ const OTP_EXPIRY_MS = 10 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = Number(process.env.OTP_RESEND_COOLDOWN_MS || 60 * 1000);
 const OTP_MAX_VERIFY_ATTEMPTS = Number(process.env.OTP_MAX_VERIFY_ATTEMPTS || 5);
 const OTP_LOCK_MS = Number(process.env.OTP_LOCK_MS || 30 * 60 * 1000);
+const DEV_OTP_FALLBACK_ENABLED =
+  String(process.env.FORGOT_PASSWORD_DEV_OTP_FALLBACK || "").trim().toLowerCase() === "true" ||
+  process.env.NODE_ENV !== "production";
 const USER_ACCESS_TOKEN_EXPIRES_IN = "15m";
 const ADMIN_ACCESS_TOKEN_EXPIRES_IN = "12h";
 const REFRESH_COOKIE_NAME = "refresh_token";
@@ -602,6 +605,14 @@ const requestForgotPasswordOtp = async (req, res, next) => {
         userName: user.name || "User",
       });
     } catch (mailErr) {
+      if (DEV_OTP_FALLBACK_ENABLED) {
+        return res.json({
+          message:
+            "Email service unreachable. Development fallback enabled; use the OTP shown below.",
+          devOtp: otp,
+          devOnly: true,
+        });
+      }
       clearForgotPasswordOtp(user);
       await user.save();
       return res.status(500).json({

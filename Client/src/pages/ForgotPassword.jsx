@@ -47,7 +47,10 @@ export default function ForgotPassword() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "OTP request failed");
 
-      setSuccess(data.message || "OTP bhej diya gaya.");
+      const successMessage = data?.devOtp
+        ? `${data.message || "OTP generated."} OTP: ${data.devOtp}`
+        : (data.message || "OTP bhej diya gaya.");
+      setSuccess(successMessage);
       setStep("verify");
     } catch (err) {
       const msg = err.message || "OTP request failed";
