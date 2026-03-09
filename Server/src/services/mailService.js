@@ -37,6 +37,8 @@ const getTransporter = () => {
     host: getRequiredEnv("SMTP_HOST"),
     port: Number(getRequiredEnv("SMTP_PORT")),
     secure: getBoolEnv("SMTP_SECURE", false),
+    // Prefer IPv4 by default. Some hosts fail on IPv6 with ENETUNREACH.
+    family: getNumberEnv("SMTP_IP_FAMILY", 4),
     pool: getBoolEnv("SMTP_POOL", true),
     maxConnections: getNumberEnv("SMTP_MAX_CONNECTIONS", 5),
     maxMessages: getNumberEnv("SMTP_MAX_MESSAGES", 100),
