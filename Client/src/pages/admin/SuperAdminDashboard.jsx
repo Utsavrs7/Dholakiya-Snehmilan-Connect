@@ -14,7 +14,7 @@ export default function SuperAdminDashboard() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const DASHBOARD_STATE_KEY = "super_admin_dashboard_state";
-  const { error: resultsError, refresh: refreshResults } = useAdminData();
+  const { results, error: resultsError, refresh: refreshResults } = useAdminData();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [adminList, setAdminList] = useState([]);
   const [adminListError, setAdminListError] = useState("");
@@ -235,6 +235,12 @@ export default function SuperAdminDashboard() {
       return role === villageSubmittedBy;
     });
   }, [villageResults, villageSubmittedBy]);
+
+  const submittedByYouCount = useMemo(() => {
+    return results.filter(
+      (r) => String(r?.submitted_by_role || "user").toLowerCase() === "super_admin"
+    ).length;
+  }, [results]);
 
   const getVillageSubmittedLabel = (role) => {
     const key = String(role || "user").toLowerCase();
@@ -679,6 +685,9 @@ export default function SuperAdminDashboard() {
       roleLabel="Super Admin"
       actions={
         <>
+          <div className="admin-card submit-count-chip px-3 py-2 md:px-4 md:py-2 rounded-full bg-white border border-[#efd8ba] text-[#7a1f1f] text-xs md:text-sm font-semibold">
+            You Submitted: {submittedByYouCount}
+          </div>
           {/* Open actions page (admin creation) */}
           <button
             onClick={() => navigate("/admin/super/submit-result")}
@@ -756,6 +765,11 @@ export default function SuperAdminDashboard() {
         .admin-theme-dark .super-add-result-btn:focus-visible {
           outline: none;
           box-shadow: 0 0 0 3px rgba(214, 179, 106, 0.42), 0 12px 24px rgba(8, 20, 46, 0.56) !important;
+        }
+        .admin-theme-dark .super-admin-page .submit-count-chip {
+          background: #1a2f57 !important;
+          border-color: #3f69a6 !important;
+          color: #eaf2ff !important;
         }
         .super-admin-page .stat-card {
           border: 1px solid #d3dceb;

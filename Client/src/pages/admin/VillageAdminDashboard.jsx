@@ -97,6 +97,12 @@ export default function VillageAdminDashboard() {
     ];
   }, [villageResults]);
 
+  const submittedByYouCount = useMemo(() => {
+    return villageResults.filter(
+      (r) => String(r?.submitted_by_role || "user").toLowerCase() === "village_admin"
+    ).length;
+  }, [villageResults]);
+
   // Filter results using latest data + current filters
   const filteredResults = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -346,6 +352,9 @@ export default function VillageAdminDashboard() {
       roleLabel={`Village Admin • ${profile.village || "Unknown"}`}
       actions={
         <>
+          <div className="admin-card submit-count-chip px-3 py-2 md:px-4 md:py-2 rounded-full bg-white border border-[#efd8ba] text-[#7a1f1f] text-xs md:text-sm font-semibold">
+            You Submitted: {submittedByYouCount}
+          </div>
           <button
             onClick={() => navigate("/admin/village/submit-result")}
             className="admin-card btn-pop btn-add-result px-3 py-2 md:px-4 md:py-2 rounded-full border text-xs md:text-sm transition font-semibold"
@@ -462,6 +471,11 @@ export default function VillageAdminDashboard() {
         }
         .admin-theme-dark .village-admin-page .new-results-dot {
           background: #7dd3fc !important;
+        }
+        .admin-theme-dark .village-admin-page .submit-count-chip {
+          background: #1a2f57 !important;
+          border-color: #3f69a6 !important;
+          color: #eaf2ff !important;
         }
         @keyframes villageResultsIn {
           from {
