@@ -352,15 +352,17 @@ export default function VillageAdminDashboard() {
       roleLabel={`Village Admin • ${profile.village || "Unknown"}`}
       actions={
         <>
-          <div className="admin-card submit-count-chip px-3 py-2 md:px-4 md:py-2 rounded-full bg-white border border-[#efd8ba] text-[#7a1f1f] text-xs md:text-sm font-semibold">
-            You Submitted: {submittedByYouCount}
+          <div className="relative">
+            <span className="submit-count-badge absolute -top-2 right-2 z-10 rounded-full px-2.5 py-0.5 text-[10px] md:text-[11px] font-bold leading-none">
+              You: {submittedByYouCount}
+            </span>
+            <button
+              onClick={() => navigate("/admin/village/submit-result")}
+              className="admin-card btn-pop btn-add-result px-3 py-2 md:px-4 md:py-2 rounded-full border text-xs md:text-sm transition font-semibold"
+            >
+              + Add Result
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/admin/village/submit-result")}
-            className="admin-card btn-pop btn-add-result px-3 py-2 md:px-4 md:py-2 rounded-full border text-xs md:text-sm transition font-semibold"
-          >
-            + Add Result
-          </button>
           {/* Profile moved to AdminShell dropdown */}
         </>
       }
@@ -472,10 +474,17 @@ export default function VillageAdminDashboard() {
         .admin-theme-dark .village-admin-page .new-results-dot {
           background: #7dd3fc !important;
         }
-        .admin-theme-dark .village-admin-page .submit-count-chip {
-          background: #1a2f57 !important;
-          border-color: #3f69a6 !important;
-          color: #eaf2ff !important;
+        .village-admin-page .submit-count-badge {
+          background: #7a1f1f;
+          color: #fff;
+          border: 1px solid #f7d7b1;
+          box-shadow: 0 6px 14px rgba(122, 31, 31, 0.2);
+        }
+        .admin-theme-dark .village-admin-page .submit-count-badge {
+          background: #d6b36a !important;
+          color: #13223f !important;
+          border-color: #f8e4b2 !important;
+          box-shadow: 0 8px 16px rgba(6, 14, 30, 0.45) !important;
         }
         @keyframes villageResultsIn {
           from {
@@ -1093,7 +1102,7 @@ export default function VillageAdminDashboard() {
             className="village-filter-control w-full md:w-auto rounded-full border border-[#ead8c4] px-4 py-2.5 text-sm"
           >
             <option value="all">All Submitters</option>
-            <option value="you">You</option>
+            <option value="you">You ({submittedByYouCount})</option>
             <option value="super_admin">Super Admin</option>
             <option value="user">Users</option>
           </select>

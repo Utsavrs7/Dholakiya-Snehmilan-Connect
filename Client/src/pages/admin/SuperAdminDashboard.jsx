@@ -685,16 +685,18 @@ export default function SuperAdminDashboard() {
       roleLabel="Super Admin"
       actions={
         <>
-          <div className="admin-card submit-count-chip px-3 py-2 md:px-4 md:py-2 rounded-full bg-white border border-[#efd8ba] text-[#7a1f1f] text-xs md:text-sm font-semibold">
-            You Submitted: {submittedByYouCount}
-          </div>
           {/* Open actions page (admin creation) */}
-          <button
-            onClick={() => navigate("/admin/super/submit-result")}
-            className="gpu-accelerated admin-card super-add-result-btn px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm transition-all duration-200 hover:scale-105 active:scale-95 font-semibold"
-          >
-            + Add Result
-          </button>
+          <div className="relative">
+            <span className="submit-count-badge absolute -top-2 right-2 z-10 rounded-full px-2.5 py-0.5 text-[10px] md:text-[11px] font-bold leading-none">
+              You: {submittedByYouCount}
+            </span>
+            <button
+              onClick={() => navigate("/admin/super/submit-result")}
+              className="gpu-accelerated admin-card super-add-result-btn px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm transition-all duration-200 hover:scale-105 active:scale-95 font-semibold"
+            >
+              + Add Result
+            </button>
+          </div>
           <button
             onClick={() => navigate("/admin/super/actions?tab=admins&action=add-admin")}
             className="gpu-accelerated admin-card px-3 py-2 md:px-4 md:py-2 rounded-full bg-white text-[#7a1f1f] text-xs md:text-sm hover:shadow-md transition-all duration-200 hover:scale-105"
@@ -766,10 +768,17 @@ export default function SuperAdminDashboard() {
           outline: none;
           box-shadow: 0 0 0 3px rgba(214, 179, 106, 0.42), 0 12px 24px rgba(8, 20, 46, 0.56) !important;
         }
-        .admin-theme-dark .super-admin-page .submit-count-chip {
-          background: #1a2f57 !important;
-          border-color: #3f69a6 !important;
-          color: #eaf2ff !important;
+        .super-admin-page .submit-count-badge {
+          background: #7a1f1f;
+          color: #fff;
+          border: 1px solid #f7d7b1;
+          box-shadow: 0 6px 14px rgba(122, 31, 31, 0.2);
+        }
+        .admin-theme-dark .super-admin-page .submit-count-badge {
+          background: #d6b36a !important;
+          color: #13223f !important;
+          border-color: #f8e4b2 !important;
+          box-shadow: 0 8px 16px rgba(6, 14, 30, 0.45) !important;
         }
         .super-admin-page .stat-card {
           border: 1px solid #d3dceb;
@@ -1687,7 +1696,7 @@ export default function SuperAdminDashboard() {
               className="village-filter-control col-span-1 rounded-full border border-[#ead8c4] px-3 py-2 text-xs md:px-4 md:py-2.5 md:text-sm"
             >
               <option value="all">All Submitters</option>
-              <option value="you">You</option>
+              <option value="you">You ({submittedByYouCount})</option>
               <option value="village_admin">Village Admin</option>
               <option value="user">Users</option>
             </select>
