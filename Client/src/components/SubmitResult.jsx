@@ -38,8 +38,6 @@ const FILE_CLASS =
   "w-full p-2 rounded-lg border border-[#7a1f1f]/30 bg-white/50 focus:border-[#7a1f1f] focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#7a1f1f]/10 file:text-[#7a1f1f] hover:file:bg-[#7a1f1f]/20";
 
 const STANDARD_OPTIONS = [
-  "J.K.G",
-  "S.K.G",
   "1st",
   "2nd",
   "3rd",
