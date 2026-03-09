@@ -1,9 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
+import { apiUrl } from "../utils/api";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
   // Step control: first request OTP, then verify OTP + reset password.
   const [step, setStep] = useState("request");
   const channel = "email";
@@ -36,12 +36,12 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/auth/forgot-password/request-otp`, {
+      const res = await fetch(apiUrl("/api/auth/forgot-password/request-otp"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           channel,
-          identifier,
+          identifier: identifier.trim(),
         }),
       });
       const data = await res.json();
@@ -92,13 +92,13 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/auth/forgot-password/reset`, {
+      const res = await fetch(apiUrl("/api/auth/forgot-password/reset"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           channel,
-          identifier,
-          otp,
+          identifier: identifier.trim(),
+          otp: otp.trim(),
           newPassword,
         }),
       });
