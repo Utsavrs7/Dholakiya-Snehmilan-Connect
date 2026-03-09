@@ -21,6 +21,9 @@ const validateMailEnv = () => {
   }
 };
 
+const isResendConfigured = () =>
+  Boolean(getRequiredEnv("RESEND_API_KEY")) && Boolean(getRequiredEnv("SMTP_FROM"));
+
 const getTransporter = () => {
   if (transporter) return transporter;
 
@@ -54,10 +57,44 @@ const getTransporter = () => {
   return transporter;
 };
 
+const sendViaResend = async ({ toEmail, subject, text, html }) => {
+  const apiKey = getRequiredEnv("RESEND_API_KEY");
+  const from = getRequiredEnv("SMTP_FROM");
+  if (!apiKey) throw new Error("RESEND_API_KEY is missing");
+  if (!from) throw new Error("SMTP_FROM is missing");
+
+  const timeoutMs = getNumberEnv("MAIL_HTTP_TIMEOUT_MS", 15000);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [toEmail],
+        subject,
+        text,
+        html,
+      }),
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.message || data?.error || `Resend API failed (${res.status})`);
+    }
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 const sendForgotPasswordOtpEmail = async ({ toEmail, otp, userName = "User" }) => {
   const clientName = getRequiredEnv("APP_NAME") || "Snehmilan Connect";
   const from = getRequiredEnv("SMTP_FROM");
-  const mailer = getTransporter();
   const startedAt = Date.now();
 
   const subject = `${clientName} Password Reset OTP`;
@@ -73,17 +110,23 @@ const sendForgotPasswordOtpEmail = async ({ toEmail, otp, userName = "User" }) =
     </div>
   `;
 
-  const info = await mailer.sendMail({
-    from,
-    to: toEmail,
-    subject,
-    text,
-    html,
-  });
+  let info;
+  if (isResendConfigured()) {
+    info = await sendViaResend({ toEmail, subject, text, html });
+  } else {
+    const mailer = getTransporter();
+    info = await mailer.sendMail({
+      from,
+      to: toEmail,
+      subject,
+      text,
+      html,
+    });
+  }
 
   // Timing log helps identify slow SMTP or provider latency in production diagnostics.
   console.log(
-    `[Mail] OTP email sent to=${toEmail} messageId=${info?.messageId || "n/a"} in ${Date.now() - startedAt}ms`
+    `[Mail] OTP email sent to=${toEmail} provider=${isResendConfigured() ? "resend" : "smtp"} messageId=${info?.messageId || info?.id || "n/a"} in ${Date.now() - startedAt}ms`
   );
 };
 
