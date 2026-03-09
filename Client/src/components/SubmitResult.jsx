@@ -377,7 +377,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
     if (Array.isArray(data)) {
       const sorted = [...data].sort((a, b) => getResultTimeMs(b) - getResultTimeMs(a));
       setMyResults(sorted);
-      if (!forceFormModeRef.current) {
+      if (!isAdminMode && !forceFormModeRef.current) {
         setShowSuccess(sorted.length > 0);
       }
       if (!selectedResultId && sorted[0]?._id) {
@@ -588,7 +588,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
       setForceFormMode(false);
       setResubmittingResultId("");
       setExistingPhotoUrl("");
-      setShowSuccess(true);
+      setShowSuccess(!isAdminMode);
       fetchMyResults(token);
       setFormData(INITIAL_FORM_DATA);
       if (preview) URL.revokeObjectURL(preview);
