@@ -10,6 +10,8 @@ export default function Login() {
   const mobileRegex = /^\d{10}$/;
   const navigate = useNavigate();
   const location = useLocation();
+  const redirectTo = location.state?.redirectTo || "/";
+  const redirectState = location.state?.redirectState || null;
   const [loginWith, setLoginWith] = useState("mobile");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -72,7 +74,7 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
       setAuth(data.token, data.user, remember);
-      navigate("/", { replace: true });
+      navigate(redirectTo, { replace: true, state: redirectState });
     } catch (err) {
       const msg = err.message || "Login failed";
       if (msg.toLowerCase().includes("password")) {
@@ -245,7 +247,11 @@ export default function Login() {
 
           <div className="mt-6 text-sm text-[#7a1f1f]/70">
             New here?{" "}
-            <Link to="/register" className="text-[#7a1f1f] font-semibold hover:text-yellow-500">
+            <Link
+              to="/register"
+              state={{ redirectTo, redirectState }}
+              className="text-[#7a1f1f] font-semibold hover:text-yellow-500"
+            >
               Create account
             </Link>
           </div>

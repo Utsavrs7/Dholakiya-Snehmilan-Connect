@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import { FaArrowLeft, FaClipboardCheck, FaHourglassHalf, FaSearch, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import trophyAnimation from "../../public/Lottie/Trophy.json";
@@ -183,6 +183,7 @@ const validateForm = (data, requiresSemester, allowExistingPhoto = false) => {
 };
 
 export default function SubmitResult({ adminModeRole = "" }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const isAdminMode = adminModeRole === "village_admin" || adminModeRole === "super_admin";
   const adminProfile = isAdminMode ? getAdminUserFor(adminModeRole) : null;
@@ -282,18 +283,28 @@ export default function SubmitResult({ adminModeRole = "" }) {
     clearAuth();
     navigate("/login", {
       replace: true,
-      state: { logoutMessage: message },
+      state: {
+        logoutMessage: message,
+        redirectTo: location.pathname || "/SubmitResult",
+        redirectState: location.state || null,
+      },
     });
   };
 
   useEffect(() => {
     const { token } = getAuthContext();
     if (!token) {
-      navigate(isAdminMode ? "/admin/login" : "/login");
+      navigate(isAdminMode ? "/admin/login" : "/login", {
+        replace: true,
+        state: {
+          redirectTo: location.pathname || "/SubmitResult",
+          redirectState: location.state || null,
+        },
+      });
       return;
     }
 
-  }, [navigate, adminModeRole, isAdminMode]);
+  }, [navigate, adminModeRole, isAdminMode, location.pathname, location.state]);
 
   useEffect(() => {
     if (!isVillageAdminMode) return;

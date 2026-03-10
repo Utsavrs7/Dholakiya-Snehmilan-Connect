@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import signInAnimation from "../../public/Lottie/Login Leady.json";
 import extraAnimation from "../../public/Lottie/sign in.json";
@@ -13,6 +13,9 @@ export default function Register() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const mobileRegex = /^\d{10}$/;
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.redirectTo || "";
+  const redirectState = location.state?.redirectState || null;
   const [firstName, setFirstName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -79,7 +82,7 @@ export default function Register() {
     }
 
     if (!mobileRegex.test(mobile)) {
-      setFieldErrors({ mobile: "મોબાઇલ નંબર ચોક્કસ 10 અંકનો હોવો જોઈએ." });
+      setFieldErrors({ mobile: "?????? ???? ?????? 10 ????? ???? ????." });
       focusField(mobileRef);
       return;
     }
@@ -138,6 +141,8 @@ export default function Register() {
             (data.accountStatus === "pending"
               ? "Account created. Your profile is pending admin approval."
               : "Account created. You can login now."),
+          redirectTo,
+          redirectState,
         },
       });
     } catch (err) {
@@ -188,7 +193,7 @@ export default function Register() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                તમારું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
+                ?????? ??? (??????????? ???, ???? ??????? ???? ??????)
               </label>
               <div className="relative z-50">
                 <GujaratiInput
@@ -206,7 +211,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                પિતાનું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
+                ??????? ??? (??????????? ???, ???? ??????? ???? ??????)
               </label>
               <div className="relative z-40">
                 <GujaratiInput
@@ -234,7 +239,7 @@ export default function Register() {
                 className="mt-2 w-full cursor-not-allowed rounded-xl border border-[#7a1f1f]/20 bg-[#fff6e5]/60 px-4 py-3 text-[#7a1f1f]/70"
               />
               <p className="mt-1 text-xs text-[#7a1f1f]/60">
-                Format: ધોળકિયા + Name + Father Name
+                Format: ??????? + Name + Father Name
               </p>
             </div>
 
@@ -291,7 +296,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                Village (મૂળ વતન)
+                Village (??? ???)
               </label>
               <select
                 ref={villageRef}
