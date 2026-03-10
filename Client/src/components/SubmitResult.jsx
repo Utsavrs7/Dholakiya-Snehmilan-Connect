@@ -201,6 +201,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
     "Aapka account reject kiya gaya hai. Kripya sahi details ke saath naya account banakar phir se apply karo.";
   const DELETED_LOGOUT_MESSAGE =
     "Aapka account remove kar diya gaya hai. Kripya sahi details ke saath naya account banakar phir se apply karo.";
+  const EXPIRED_LOGOUT_MESSAGE = "Aapki session expire ho gayi hai. Kripya dubara login karein.";
 
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [preview, setPreview] = useState(null);
@@ -332,8 +333,10 @@ export default function SubmitResult({ adminModeRole = "" }) {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
-          if (res.status === 401 || res.status === 403 || res.status === 404) {
+          if (res.status === 404) {
             forceLogoutToLogin(DELETED_LOGOUT_MESSAGE);
+          } else if (res.status === 401 || res.status === 403) {
+            forceLogoutToLogin(EXPIRED_LOGOUT_MESSAGE);
           }
           return;
         }
