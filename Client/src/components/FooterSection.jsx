@@ -1,21 +1,68 @@
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+﻿import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { apiUrl } from "../utils/api";
+
 
 export default function FooterSection() {
   const year = new Date().getFullYear();
   const [visitorCount, setVisitorCount] = useState(0);
+  const [hasLoadedCount, setHasLoadedCount] = useState(false);
+  const visitorRef = useRef(null);
+  const hasTriggeredRef = useRef(false);
 
   useEffect(() => {
-    try {
-      const base = 12840;
-      const stored = Number.parseInt(localStorage.getItem("visitor_count") || "", 10);
-      const next = Number.isFinite(stored) && stored > 0 ? stored + 1 : base;
-      localStorage.setItem("visitor_count", String(next));
-      setVisitorCount(next);
-    } catch {
-      setVisitorCount(12840);
-    }
+    const target = visitorRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        if (hasTriggeredRef.current) return;
+        hasTriggeredRef.current = true;
+        const loadCount = async () => {
+          try {
+            const res = await fetch(apiUrl("/api/metrics/visitors"), { method: "POST" });
+            if (!res.ok) throw new Error("Failed");
+            const data = await res.json();
+            const nextCount = Number(data?.count || 0);
+            const safeCount = Number.isFinite(nextCount) ? Math.max(0, nextCount) : 0;
+            animateCount(safeCount);
+          } catch {
+            setVisitorCount(0);
+          } finally {
+            setHasLoadedCount(true);
+          }
+        };
+        loadCount();
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
   }, []);
+
+  const animateCount = (targetCount) => {
+    const maxDuration = 3200;
+    const minDuration = 900;
+    const log = Math.log10(Math.max(1, targetCount + 1));
+    const duration = Math.min(
+      maxDuration,
+      Math.max(minDuration, maxDuration - log * 700)
+    );
+    const start = performance.now();
+    const startValue = 0;
+    const step = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.round(startValue + (targetCount - startValue) * eased);
+      setVisitorCount(value);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
+  };
 
   return (
     <footer className="relative w-full bg-[#6b1d1d] text-white overflow-hidden">
@@ -57,13 +104,16 @@ export default function FooterSection() {
               Dholakiya Parivar - ek parivar, ek parampara. Amara sambandho,
               sanskar ane seva no safar satat vikas pame.
             </p>
-            <div className="mt-5 inline-flex items-center gap-3 rounded-full border border-yellow-300/50 bg-yellow-200/10 px-4 py-2 text-xs font-semibold text-yellow-200 relative overflow-hidden animate-[visitorGlow_4.5s_ease-in-out_infinite]">
+            <div
+              ref={visitorRef}
+              className="mt-5 inline-flex items-center gap-3 rounded-full border border-yellow-300/50 bg-yellow-200/10 px-4 py-2 text-xs font-semibold text-yellow-200 relative overflow-hidden animate-[visitorGlow_4.5s_ease-in-out_infinite]"
+            >
               <span className="uppercase tracking-[0.2em] text-[10px] text-yellow-100/80">
                 Visitors
               </span>
               <span className="h-4 w-px bg-yellow-200/40" />
               <span className="text-sm text-yellow-100 font-bold">
-                {visitorCount.toLocaleString("en-IN")}
+                {hasLoadedCount ? visitorCount.toLocaleString("en-IN") : "—"}
               </span>
               <span className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-yellow-200/30 to-transparent animate-[visitorSweep_6s_ease-in-out_infinite]" />
             </div>
@@ -126,11 +176,14 @@ export default function FooterSection() {
         </div>
 
         <div className="mt-6 pt-3 border-t border-white/20 text-sm text-white/70 flex flex-col md:flex-row justify-between gap-2">
-          <span>� {year} Dholakiya Parivar. All rights reserved.</span>
+          <span>© {year} Dholakiya Parivar. All rights reserved.</span>
           <span>Design by Leo Infotech</span>
         </div>
       </div>
     </footer>
   );
 }
+
+
+
 
