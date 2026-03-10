@@ -877,8 +877,8 @@ export default function SubmitResult({ adminModeRole = "" }) {
   if (!isAdminMode && !hasCheckedExistingSubmission) {
     return (
       <section className="min-h-screen bg-[#fff8ee] px-4 py-10 flex items-center justify-center">
-        <div className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80">
-          <Lottie animationData={noSearchResultAnimation} loop className="w-50 h-50" />
+        <div className="w-52 h-52 sm:w-60 sm:h-60 md:w-64 md:h-64">
+          <Lottie animationData={noSearchResultAnimation} loop className="w-full h-full" />
         </div>
       </section>
     );
