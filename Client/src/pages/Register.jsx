@@ -82,7 +82,7 @@ export default function Register() {
     }
 
     if (!mobileRegex.test(mobile)) {
-      setFieldErrors({ mobile: "?????? ???? ?????? 10 ????? ???? ????." });
+      setFieldErrors({ mobile: "મોબાઇલ નંબર ચોક્કસ 10 અંકનો હોવો જોઈએ." });
       focusField(mobileRef);
       return;
     }
@@ -193,7 +193,7 @@ export default function Register() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                ?????? ??? (??????????? ???, ???? ??????? ???? ??????)
+                તમારું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
               </label>
               <div className="relative z-50">
                 <GujaratiInput
@@ -211,7 +211,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                ??????? ??? (??????????? ???, ???? ??????? ???? ??????)
+                પિતાનું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
               </label>
               <div className="relative z-40">
                 <GujaratiInput
@@ -239,7 +239,7 @@ export default function Register() {
                 className="mt-2 w-full cursor-not-allowed rounded-xl border border-[#7a1f1f]/20 bg-[#fff6e5]/60 px-4 py-3 text-[#7a1f1f]/70"
               />
               <p className="mt-1 text-xs text-[#7a1f1f]/60">
-                Format: ??????? + Name + Father Name
+                Format: ધોળકિયા + Name + Father Name
               </p>
             </div>
 
@@ -296,7 +296,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                Village (??? ???)
+                Village (મૂળ વતન)
               </label>
               <select
                 ref={villageRef}
