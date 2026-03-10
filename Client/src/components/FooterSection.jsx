@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";\r\nimport { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function FooterSection() {
   const year = new Date().getFullYear();
@@ -132,3 +133,4 @@ export default function FooterSection() {
     </footer>
   );
 }
+
