@@ -228,6 +228,7 @@ export default function SubmitResult({ adminModeRole = "" }) {
       token: getToken(),
     };
   };
+  const authToken = getAuthContext().token;
 
   useEffect(() => {
     forceFormModeRef.current = forceFormMode;
@@ -877,6 +878,16 @@ export default function SubmitResult({ adminModeRole = "" }) {
       <section className="min-h-screen bg-[#fff8ee] px-4 py-10 flex items-center justify-center">
         <div className="rounded-2xl border border-[#e6d5c3] bg-white/90 px-6 py-4 text-sm text-[#7a1f1f]/80 shadow-sm">
           Loading your latest result status...
+        </div>
+      </section>
+    );
+  }
+  
+  if (!authToken) {
+    return (
+      <section className="min-h-screen bg-[#fff8ee] px-4 py-10 flex items-center justify-center">
+        <div className="rounded-2xl border border-[#e6d5c3] bg-white/90 px-6 py-4 text-sm text-[#7a1f1f]/80 shadow-sm">
+          Redirecting to login...
         </div>
       </section>
     );
