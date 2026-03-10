@@ -75,7 +75,7 @@ export default function FooterSection() {
               <div>Email: info@dholakiyaparivar.com</div>
               <div>Phone: +91 9XXXXXXXXX</div>
             </div>
-            <div className="mt-5 flex gap-3">
+            {/* <div className="mt-5 flex gap-3">
               <div className="h-10 w-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-[#6b1d1d] transition grid place-items-center">
                 f
               </div>
@@ -85,7 +85,7 @@ export default function FooterSection() {
               <div className="h-10 w-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-[#6b1d1d] transition grid place-items-center">
                 y
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
