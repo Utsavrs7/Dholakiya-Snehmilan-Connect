@@ -229,7 +229,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                Full Name (Gujarati)
+                પૂરું નામ  (Gujarati)
               </label>
               <input
                 type="text"
@@ -239,7 +239,7 @@ export default function Register() {
                 className="mt-2 w-full cursor-not-allowed rounded-xl border border-[#7a1f1f]/20 bg-[#fff6e5]/60 px-4 py-3 text-[#7a1f1f]/70"
               />
               <p className="mt-1 text-xs text-[#7a1f1f]/60">
-                Format: ધોળકિયા + Name + Father Name
+                Format: ધોળકિયા + તમારું-નામ  + પિતાનું નામ 
               </p>
             </div>
 
@@ -278,7 +278,7 @@ export default function Register() {
                     onChange={(e) => setGender(e.target.value)}
                     className="w-5 h-5 text-[#7a1f1f] focus:ring-[#7a1f1f]"
                   />
-                  <span className="text-[#7a1f1f]">Male</span>
+                  <span className="text-[#7a1f1f]">Male(પુરુષ)</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -289,14 +289,14 @@ export default function Register() {
                     onChange={(e) => setGender(e.target.value)}
                     className="w-5 h-5 text-[#7a1f1f] focus:ring-[#7a1f1f]"
                   />
-                  <span className="text-[#7a1f1f]">Female</span>
+                  <span className="text-[#7a1f1f]">Female(સ્ત્રી)</span>
                 </label>
               </div>
             </div>
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                Village (મૂળ વતન)
+                ગામ (મૂળ વતન)
               </label>
               <select
                 ref={villageRef}
