@@ -9,7 +9,6 @@ const announcementRoutes = require("./src/routes/announcements");
 const heroRoutes = require("./src/routes/hero");
 const proxyRoutes = require("./src/routes/proxy");
 const exportRoutes = require("./routes/export");
-const metricsRoutes = require("./src/routes/metrics");
 
 
 const app = express();
@@ -82,7 +81,6 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/api/hero", heroRoutes);
 app.use("/api/proxy", proxyRoutes);
 app.use("/api/export", exportRoutes);
-app.use("/api/metrics", metricsRoutes);
 
 
 // 404 handler
