@@ -193,7 +193,7 @@ export default function Register() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                તમારું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
+                Your Name 
               </label>
               <div className="relative z-50">
                 <GujaratiInput
@@ -211,7 +211,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                પિતાનું નામ (અંગ્રેજીમાં લખો, નીચે ગુજરાતી સૂચન દેખાશે)
+                Father Name
               </label>
               <div className="relative z-40">
                 <GujaratiInput
@@ -229,7 +229,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                પૂરું નામ  (Gujarati)
+                Full Name  (Gujarati)
               </label>
               <input
                 type="text"
@@ -296,7 +296,7 @@ export default function Register() {
 
             <div>
               <label className="text-sm font-medium text-[#7a1f1f]/80">
-                ગામ (મૂળ વતન)
+                Village (મૂળ વતન)
               </label>
               <select
                 ref={villageRef}
