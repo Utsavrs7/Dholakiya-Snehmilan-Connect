@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import loadingAnimation from "../public/Lottie/Loading.json";
+import notFoundAnimation from "../public/Lottie/Error 404.json";
 
 import Navbar from "./components/Navbar";
 import { AdminDataProvider } from "./context/AdminDataContext";
@@ -35,6 +36,16 @@ function AppLoader() {
         <p className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap text-xs sm:text-sm tracking-[0.18em] font-semibold text-[#7a1f1f]/80">
           Dholakiya Parivar
         </p>
+      </div>
+    </div>
+  );
+}
+
+function NotFound() {
+  return (
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-[#fff8ee]">
+      <div className="w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96">
+        <Lottie animationData={notFoundAnimation} loop className="w-full h-full" />
       </div>
     </div>
   );
@@ -135,6 +146,7 @@ export default function App() {
                 </AdminRoute>
               }
             />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </main>

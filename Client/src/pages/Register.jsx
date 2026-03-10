@@ -278,7 +278,7 @@ export default function Register() {
                     onChange={(e) => setGender(e.target.value)}
                     className="w-5 h-5 text-[#7a1f1f] focus:ring-[#7a1f1f]"
                   />
-                  <span className="text-[#7a1f1f]">Male(પુરુષ)</span>
+                  <span className="text-[#7a1f1f]">Male (પુરુષ)</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -289,7 +289,7 @@ export default function Register() {
                     onChange={(e) => setGender(e.target.value)}
                     className="w-5 h-5 text-[#7a1f1f] focus:ring-[#7a1f1f]"
                   />
-                  <span className="text-[#7a1f1f]">Female(સ્ત્રી)</span>
+                  <span className="text-[#7a1f1f]">Female (સ્ત્રી)</span>
                 </label>
               </div>
             </div>

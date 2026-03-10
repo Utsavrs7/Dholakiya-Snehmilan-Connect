@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import { FaArrowLeft, FaClipboardCheck, FaHourglassHalf, FaSearch, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import trophyAnimation from "../../public/Lottie/Trophy.json";
+import noSearchResultAnimation from "../../public/Lottie/no search result.json";
 import { clearAuth, getToken, getUser } from "../utils/auth";
 import { getAdminTokenFor, getAdminUserFor } from "../utils/adminAuth";
 import { capitalizeWords } from "../utils/format";
@@ -876,8 +877,8 @@ export default function SubmitResult({ adminModeRole = "" }) {
   if (!isAdminMode && !hasCheckedExistingSubmission) {
     return (
       <section className="min-h-screen bg-[#fff8ee] px-4 py-10 flex items-center justify-center">
-        <div className="rounded-2xl border border-[#e6d5c3] bg-white/90 px-6 py-4 text-sm text-[#7a1f1f]/80 shadow-sm">
-          Loading your latest result status...
+        <div className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80">
+          <Lottie animationData={noSearchResultAnimation} loop className="w-full h-full" />
         </div>
       </section>
     );
